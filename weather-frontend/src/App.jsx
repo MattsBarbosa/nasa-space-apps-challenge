@@ -47,7 +47,7 @@ function App() {
                 NASA Weather Predictor
               </h1>
               <p className="text-gray-600">
-                Previsões baseadas em dados históricos da NASA + condições atuais
+                Previsões baseadas em dados históricos da NASA
               </p>
             </div>
           </div>
