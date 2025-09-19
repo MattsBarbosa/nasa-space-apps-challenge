@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import LocationSelector from './components/LocationSelector.jsx';
+import MapSelector from './components/MapSelector.jsx';
 import WeatherVisualization from './components/WeatherVisualization.jsx';
 import ApiStatus from './components/ApiStatus.jsx';
 import weatherApi from './services/weatherApi';
@@ -47,7 +47,7 @@ function App() {
                 NASA Weather Predictor
               </h1>
               <p className="text-gray-600">
-                Previsões baseadas em dados históricos da NASA
+                Previsões baseadas em dados históricos da NASA com seleção interativa no mapa
               </p>
             </div>
           </div>
@@ -56,7 +56,7 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <LocationSelector onLocationSubmit={handleLocationSubmit} loading={loading} />
+        <MapSelector onLocationSubmit={handleLocationSubmit} loading={loading} />
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -76,10 +76,10 @@ function App() {
           <div className="text-center py-12">
             <Cloud className="mx-auto text-gray-400 mb-4" size={64} />
             <h3 className="text-lg font-medium text-gray-600 mb-2">
-              Selecione uma localização
+              Selecione uma localização no mapa
             </h3>
             <p className="text-gray-500">
-              Escolha as coordenadas e data para obter a previsão meteorológica.
+              Use o mapa interativo, sua localização atual ou escolha um local pré-definido para obter previsões meteorológicas.
             </p>
           </div>
         )}

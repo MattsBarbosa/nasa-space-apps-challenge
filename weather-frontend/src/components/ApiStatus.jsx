@@ -51,12 +51,6 @@ const ApiStatus = () => {
               {status.components.nasa_api?.status || 'unknown'}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span>OpenMeteo:</span>
-            <span className={status.components.openmeteo_api?.status === 'connected' ? 'text-green-600' : 'text-red-600'}>
-              {status.components.openmeteo_api?.status || 'unknown'}
-            </span>
-          </div>
         </div>
       )}
     </div>
