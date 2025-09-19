@@ -1,295 +1,507 @@
-// ===== CORREÇÃO DO src/services/ProbabilityCalculator.js =====
 import { WEATHER_THRESHOLDS } from '../config/constants.js'
-import { getDayOfYear, clampValue } from '../utils/helpers.js'
+import { getDayOfYear } from '../utils/helpers.js'
 
-class ProbabilityCalculator {
-  async calculate(historicalData, targetDate, currentConditions = null) {
+class NASAVennBayesCalculator {
 
-      // 1. Definir conjuntos com correção temporal
-    const sets = this.defineWeatherSets(historicalData, targetDate)
+    async calculate(historicalData, targetDate, currentConditions = null) {
+        // 1. Processar dados da NASA POWER API
+        const nasaData = this.processNASAData(historicalData, targetDate)
 
-    // 2. Calcular intersecções Venn
-    const vennAnalysis = this.calculateVennIntersections(sets)
+        // 2. Aplicar Diagrama de Venn (Teoria de Conjuntos)
+        const vennAnalysis = this.applyVennDiagram(nasaData)
 
-    // 3. NOVO: Ajuste por progressão temporal (correção da defasagem)
-    const temporalAdjustment = this.calculateTemporalProgression(historicalData, targetDate)
+        // 3. Aplicar Teorema de Bayes (se há condições atuais)
+        const bayesianResult = currentConditions ?
+            this.applyBayesTheorem(vennAnalysis, currentConditions, nasaData) :
+            this.getPriorProbabilities(vennAnalysis)
 
-    // 4. Ajuste Bayesiano (se temos condições atuais)
-    const bayesianAdjustment = currentConditions ?
-      this.applyBayesianUpdate(vennAnalysis, currentConditions, historicalData) :
-      this.getDefaultAdjustment()
+        // 4. CORREÇÃO: Calcular todas as condições independentemente
+        const allProbabilities = this.calculateAllConditions(nasaData, vennAnalysis, currentConditions)
 
-    // 5. Probabilidades finais com correções
-    const probabilities = this.calculateFinalProbabilities(
-      vennAnalysis,
-      bayesianAdjustment,
-      temporalAdjustment
-    )
-
-    // 6. Confiança realística
-    const confidence = this.calculateRealisticConfidence(sets, historicalData, currentConditions)
-
-    return {
-      probabilities,
-      vennAnalysis,
-      temporalAdjustment,
-      bayesianAdjustment,
-      confidence,
-      methodology: 'venn_diagram_temporal_corrected'
-    }
-  }
-
-  // NOVO: Correção da progressão temporal
-  calculateTemporalProgression(historicalData, targetDate) {
-    const targetDayOfYear = getDayOfYear(new Date(targetDate))
-
-    // Analisar padrão de 5 dias antes e depois
-    const patterns = {
-      dayMinus2: this.analyzeDayPattern(historicalData, targetDayOfYear - 2),
-      dayMinus1: this.analyzeDayPattern(historicalData, targetDayOfYear - 1),
-      targetDay: this.analyzeDayPattern(historicalData, targetDayOfYear),
-      dayPlus1: this.analyzeDayPattern(historicalData, targetDayOfYear + 1),
-      dayPlus2: this.analyzeDayPattern(historicalData, targetDayOfYear + 2)
-    }
-
-    // Detectar tendência: chuva está se aproximando ou se afastando?
-    const trend = this.detectWeatherTrend(patterns)
-
-    return {
-      patterns,
-      trend,
-      adjustmentFactor: this.calculateTemporalAdjustmentFactor(trend)
-    }
-  }
-
-  analyzeDayPattern(historicalData, dayOfYear) {
-    const relevantDays = historicalData.filter(day => {
-      const dayNum = getDayOfYear(new Date(day.date.substring(0,4), day.date.substring(4,6)-1, day.date.substring(6,8)))
-      return Math.abs(dayNum - dayOfYear) <= 3 // ±3 dias
-    })
-
-    if (relevantDays.length === 0) return { rainProbability: 0, intensity: 0 }
-
-    const rainDays = relevantDays.filter(d => d.precipitation > WEATHER_THRESHOLDS.rain.light)
-    const avgPrecipitation = relevantDays.reduce((sum, d) => sum + d.precipitation, 0) / relevantDays.length
-
-    return {
-      rainProbability: rainDays.length / relevantDays.length,
-      intensity: avgPrecipitation,
-      totalDays: relevantDays.length
-    }
-  }
-
-  detectWeatherTrend(patterns) {
-    const probabilities = [
-      patterns.dayMinus2.rainProbability,
-      patterns.dayMinus1.rainProbability,
-      patterns.targetDay.rainProbability,
-      patterns.dayPlus1.rainProbability,
-      patterns.dayPlus2.rainProbability
-    ]
-
-    // Calcular tendência usando regressão linear simples
-    const trend = this.calculateLinearTrend(probabilities)
-
-    return {
-      direction: trend > 0.05 ? 'increasing' : trend < -0.05 ? 'decreasing' : 'stable',
-      magnitude: Math.abs(trend),
-      peakDay: this.findPeakRainDay(patterns)
-    }
-  }
-
-  calculateLinearTrend(values) {
-    const n = values.length
-    const x = [-2, -1, 0, 1, 2] // dias relativos
-    const y = values
-
-    const sumX = x.reduce((a, b) => a + b, 0)
-    const sumY = y.reduce((a, b) => a + b, 0)
-    const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0)
-    const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0)
-
-    // Slope da regressão linear
-    return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX)
-  }
-
-  findPeakRainDay(patterns) {
-    const days = ['dayMinus2', 'dayMinus1', 'targetDay', 'dayPlus1', 'dayPlus2']
-    let maxProb = 0
-    let peakDay = 'targetDay'
-
-    days.forEach(day => {
-      if (patterns[day].rainProbability > maxProb) {
-        maxProb = patterns[day].rainProbability
-        peakDay = day
-      }
-    })
-
-    return {
-      day: peakDay,
-      probability: maxProb,
-      daysOffset: this.getDayOffset(peakDay)
-    }
-  }
-
-  getDayOffset(peakDay) {
-    const offsets = {
-      'dayMinus2': -2,
-      'dayMinus1': -1,
-      'targetDay': 0,
-      'dayPlus1': 1,
-      'dayPlus2': 2
-    }
-    return offsets[peakDay] || 0
-  }
-
-  calculateTemporalAdjustmentFactor(trend) {
-    // Se o pico de chuva é em outro dia, ajustar probabilidade
-    const peakOffset = trend.peakDay.daysOffset
-
-    if (peakOffset === 0) {
-      return { rain: 1.0, sunny: 1.0 } // Pico no dia target
-    } else if (Math.abs(peakOffset) === 1) {
-      return { rain: 0.7, sunny: 1.3 } // Pico 1 dia antes/depois
-    } else {
-      return { rain: 0.4, sunny: 1.6 } // Pico 2+ dias antes/depois
-    }
-  }
-
-  // CORRIGIDO: Probabilidades finais com ajuste temporal
-  calculateFinalProbabilities(vennAnalysis, bayesianAdjustment, temporalAdjustment) {
-    const base = vennAnalysis.basic
-    const intersections = vennAnalysis.intersections
-    const bayesAdj = bayesianAdjustment.adjustmentFactor
-    const tempAdj = temporalAdjustment.adjustmentFactor
-
-    // Probabilidade base de chuva
-    let rainProb = (base.precipitation.light + base.precipitation.moderate + base.precipitation.heavy)
-                  * bayesAdj.rainy
-                  * tempAdj.rain
-
-    // Probabilidade base de sol
-    let sunnyProb = intersections.sunnyConditions * 1.2 * bayesAdj.sunny * tempAdj.sunny
-
-    // Normalizar para evitar soma > 100%
-    const total = rainProb + sunnyProb + 0.3 // 0.3 para outras condições
-    if (total > 1.0) {
-      rainProb = rainProb / total
-      sunnyProb = sunnyProb / total
-    }
-
-    return {
-      sunny: clampValue(sunnyProb),
-      rainy: clampValue(rainProb),
-      cloudy: clampValue(intersections.rainAndHighHumidity * 0.6),
-      snowy: clampValue(0.05), // Simplificado para regiões tropicais
-      windy: clampValue(0.1)   // Simplificado
-    }
-  }
-
-  // CORRIGIDO: Confiança mais realística
-  calculateRealisticConfidence(sets, historicalData, currentConditions) {
-    const relevantDays = sets.total.length
-
-    // Fatores de confiança
-    const dataConfidence = Math.min(relevantDays / 50, 1.0) * 0.6 // Reduzido
-    const temporalConfidence = Math.min(historicalData.length / (15 * 365), 1.0) * 0.3
-    const currentConditionsBonus = currentConditions ? 0.1 : 0
-
-    // Penalidade por falta de dados em tempo real
-    const realTimeDataPenalty = 0.3 // Não temos dados meteorológicos atuais
-
-    const overallConfidence = dataConfidence + temporalConfidence + currentConditionsBonus - realTimeDataPenalty
-
-    return {
-      overall: clampValue(overallConfidence, 0.1, 0.8), // Máximo 80% sem dados em tempo real
-      breakdown: {
-        data: dataConfidence,
-        temporal: temporalConfidence,
-        currentConditions: currentConditionsBonus,
-        realTimePenalty: realTimeDataPenalty
-      },
-      limitations: [
-        "Baseado apenas em padrões históricos",
-        "Não considera condições meteorológicas atuais",
-        "Precisão limitada para previsões de curto prazo"
-      ]
-    }
-  }
-
-  // Métodos existentes mantidos...
-  defineWeatherSets(historicalData, targetDate) {
-    const targetDayOfYear = getDayOfYear(new Date(targetDate))
-    const windowDays = 10 // Reduzido para maior precisão temporal
-
-    const relevantDays = historicalData.filter(day => {
-      const dayOfYear = getDayOfYear(new Date(day.date.substring(0,4), day.date.substring(4,6)-1, day.date.substring(6,8)))
-      return Math.abs(dayOfYear - targetDayOfYear) <= windowDays
-    })
-
-    if (relevantDays.length === 0) {
-      throw new Error('Dados insuficientes para análise')
-    }
-
-    return {
-      precipitation: {
-        none: relevantDays.filter(d => d.precipitation < WEATHER_THRESHOLDS.rain.light),
-        light: relevantDays.filter(d => d.precipitation >= WEATHER_THRESHOLDS.rain.light && d.precipitation < WEATHER_THRESHOLDS.rain.moderate),
-        moderate: relevantDays.filter(d => d.precipitation >= WEATHER_THRESHOLDS.rain.moderate)
-      },
-      humidity: {
-        low: relevantDays.filter(d => d.humidity < WEATHER_THRESHOLDS.humidity.low),
-        high: relevantDays.filter(d => d.humidity >= WEATHER_THRESHOLDS.humidity.high)
-      },
-      total: relevantDays
-    }
-  }
-
-  calculateVennIntersections(sets) {
-    const total = sets.total.length
-
-    const intersections = {
-      rainAndHighHumidity: this.calculateIntersection(
-        sets.precipitation.light.concat(sets.precipitation.moderate),
-        sets.humidity.high
-      ) / total,
-
-      sunnyConditions: this.calculateIntersection(
-        sets.precipitation.none,
-        sets.humidity.low
-      ) / total
-    }
-
-    return {
-      basic: {
-        precipitation: {
-          none: sets.precipitation.none.length / total,
-          light: sets.precipitation.light.length / total,
-          moderate: sets.precipitation.moderate.length / total
+        return {
+            probabilities: allProbabilities,
+            vennAnalysis: vennAnalysis,
+            bayesianDetails: bayesianResult,
+            confidence: this.calculateConfidence(nasaData),
+            methodology: 'nasa_venn_bayes',
+            dataSource: 'NASA_POWER'
         }
-      },
-      intersections,
-      total
     }
-  }
 
-  calculateIntersection(setA, setB) {
-    return setA.filter(dayA => setB.some(dayB => dayA.date === dayB.date)).length
-  }
+    // NOVA FUNÇÃO: Calcular todas as condições independentemente
+    calculateAllConditions(nasaData, vennAnalysis, currentConditions = null) {
+        const total = nasaData.length
 
-  getDefaultAdjustment() {
-    return {
-      adjustmentFactor: { sunny: 1, rainy: 1, snowy: 1, cloudy: 1, windy: 1 }
+        if (total === 0) {
+            return this.getDefaultProbabilities()
+        }
+
+        // Calcular cada condição baseada em critérios específicos
+        const conditions = {
+            // SUNNY: Dias secos + baixa umidade + temperatura amena
+            sunny: this.calculateSunnyProbability(nasaData, vennAnalysis),
+
+            // RAINY: Dias com precipitação
+            rainy: this.calculateRainyProbability(nasaData, vennAnalysis),
+
+            // CLOUDY: Dias com alta umidade mas pouca chuva
+            cloudy: this.calculateCloudyProbability(nasaData, vennAnalysis),
+
+            // STORMY: Dias com chuva forte + alta umidade
+            stormy: this.calculateStormyProbability(nasaData, vennAnalysis),
+
+            // WINDY: Dias com vento forte
+            windy: this.calculateWindyProbability(nasaData, currentConditions),
+
+            // SNOWY: Dias frios com precipitação
+            snowy: this.calculateSnowyProbability(nasaData, currentConditions)
+        }
+
+        // Aplicar ajuste Bayesiano se há condições atuais
+        if (currentConditions) {
+            return this.applyBayesianAdjustment(conditions, currentConditions, nasaData)
+        }
+
+        // Garantir que nenhuma probabilidade seja 0 (mínimo de 1%)
+        Object.keys(conditions).forEach(key => {
+            conditions[key] = Math.max(conditions[key], 0.01)
+        })
+
+        return conditions
     }
-  }
 
-  applyBayesianUpdate(vennAnalysis, currentConditions, historicalData) {
-    // Implementação simplificada
-    return {
-      adjustmentFactor: { sunny: 1.1, rainy: 0.9, snowy: 1.0, cloudy: 1.0, windy: 1.0 },
-      similarDaysCount: 10
+    // Calcular probabilidade de sol
+    calculateSunnyProbability(nasaData, vennAnalysis) {
+        const total = nasaData.length
+
+        // Critério: dias secos + baixa/moderada umidade
+        const sunnyDays = nasaData.filter(d =>
+            d.precipitation < WEATHER_THRESHOLDS.rain.light &&
+            d.humidity && d.humidity < WEATHER_THRESHOLDS.humidity.high
+        ).length
+
+        const baseProb = sunnyDays / total
+
+        // Usar intersecção do Venn como boost
+        const vennBoost = vennAnalysis.intersections.idealSunny || 0
+
+        return Math.max(baseProb, vennBoost) * 0.9 // Máximo 90%
     }
-  }
+
+    // Calcular probabilidade de chuva
+    calculateRainyProbability(nasaData, vennAnalysis) {
+        const total = nasaData.length
+
+        const rainyDays = nasaData.filter(d =>
+            d.precipitation >= WEATHER_THRESHOLDS.rain.light
+        ).length
+
+        return Math.max(rainyDays / total, 0.05) // Mínimo 5%
+    }
+
+    // Calcular probabilidade de nublado
+    calculateCloudyProbability(nasaData, vennAnalysis) {
+        const total = nasaData.length
+
+        // Critério: alta umidade mas pouca chuva
+        const cloudyDays = nasaData.filter(d =>
+            d.humidity && d.humidity >= WEATHER_THRESHOLDS.humidity.moderate &&
+            d.precipitation < WEATHER_THRESHOLDS.rain.moderate
+        ).length
+
+        return Math.max(cloudyDays / total, 0.05) // Mínimo 5%
+    }
+
+    // Calcular probabilidade de tempestade
+    calculateStormyProbability(nasaData, vennAnalysis) {
+        const total = nasaData.length
+
+        const stormyDays = nasaData.filter(d =>
+            d.precipitation >= WEATHER_THRESHOLDS.rain.moderate &&
+            d.humidity && d.humidity >= WEATHER_THRESHOLDS.humidity.high
+        ).length
+
+        const baseProb = stormyDays / total
+        const vennBoost = vennAnalysis.intersections.stormConditions || 0
+
+        return Math.max(baseProb, vennBoost, 0.02) // Mínimo 2%
+    }
+
+    // Aplicar ajuste Bayesiano às condições
+    applyBayesianAdjustment(conditions, currentConditions, nasaData) {
+        const adjusted = { ...conditions }
+
+        // Ajuste baseado na temperatura atual
+        if (currentConditions.temperature !== undefined) {
+            if (currentConditions.temperature > WEATHER_THRESHOLDS.temperature.warm) {
+                adjusted.sunny *= 1.3
+                adjusted.stormy *= 1.2
+                adjusted.snowy *= 0.1
+            } else if (currentConditions.temperature < WEATHER_THRESHOLDS.temperature.cold) {
+                adjusted.snowy *= 2.0
+                adjusted.sunny *= 0.7
+            }
+        }
+
+        // Ajuste baseado na umidade atual
+        if (currentConditions.humidity !== undefined) {
+            if (currentConditions.humidity > WEATHER_THRESHOLDS.humidity.high) {
+                adjusted.rainy *= 1.4
+                adjusted.stormy *= 1.3
+                adjusted.cloudy *= 1.2
+                adjusted.sunny *= 0.6
+            } else if (currentConditions.humidity < WEATHER_THRESHOLDS.humidity.low) {
+                adjusted.sunny *= 1.3
+                adjusted.rainy *= 0.7
+                adjusted.cloudy *= 0.8
+            }
+        }
+
+        // Ajuste baseado na pressão atual
+        if (currentConditions.pressure !== undefined) {
+            // Pressão baixa indica instabilidade
+            if (currentConditions.pressure < 1000) {
+                adjusted.rainy *= 1.3
+                adjusted.stormy *= 1.4
+                adjusted.sunny *= 0.7
+            } else if (currentConditions.pressure > 1020) {
+                adjusted.sunny *= 1.2
+                adjusted.rainy *= 0.8
+            }
+        }
+
+        // Ajuste baseado no vento atual
+        if (currentConditions.windSpeed !== undefined) {
+            if (currentConditions.windSpeed > WEATHER_THRESHOLDS.wind.moderate) {
+                adjusted.windy *= 2.0
+                adjusted.stormy *= 1.3
+            }
+        }
+
+        // Garantir que nenhuma probabilidade seja 0 após ajustes
+        Object.keys(adjusted).forEach(key => {
+            adjusted[key] = Math.max(adjusted[key], 0.01)
+            adjusted[key] = Math.min(adjusted[key], 0.95) // Máximo 95%
+        })
+
+        return adjusted
+    }
+
+    // Probabilidades padrão quando não há dados suficientes
+    getDefaultProbabilities() {
+        return {
+            sunny: 0.25,
+            rainy: 0.20,
+            cloudy: 0.25,
+            stormy: 0.05,
+            windy: 0.15,
+            snowy: 0.10
+        }
+    }
+
+    // PASSO 1: Processar dados específicos da NASA POWER API
+    processNASAData(historicalData, targetDate) {
+        const targetDayOfYear = getDayOfYear(new Date(targetDate))
+        const windowDays = 15 // ±15 dias para padrão sazonal
+
+        const relevantDays = []
+
+        // Iterar pelos dados da NASA no formato YYYYMMDD
+        Object.keys(historicalData.PRECTOTCORR || {}).forEach(dateStr => {
+            const date = this.parseNASADate(dateStr)
+            const dayOfYear = getDayOfYear(date)
+
+            // Filtrar apenas dias na janela temporal desejada
+            if (Math.abs(dayOfYear - targetDayOfYear) <= windowDays) {
+                const dayData = {
+                    date: dateStr,
+                    year: date.getFullYear(),
+                    dayOfYear: dayOfYear,
+
+                    // Extrair variáveis meteorológicas da NASA
+                    precipitation: historicalData.PRECTOTCORR[dateStr] || 0,
+                    tempMax: historicalData.T2M_MAX?.[dateStr] || null,
+                    tempMin: historicalData.T2M_MIN?.[dateStr] || null,
+                    humidity: historicalData.RH2M?.[dateStr] || null,
+                    windSpeed: historicalData.WS10M?.[dateStr] || null,
+                    pressure: historicalData.PS?.[dateStr] || null
+                }
+
+                // Calcular temperatura média
+                if (dayData.tempMax !== null && dayData.tempMin !== null) {
+                    dayData.tempMean = (dayData.tempMax + dayData.tempMin) / 2
+                }
+
+                relevantDays.push(dayData)
+            }
+        })
+
+        console.log(`NASA Data: ${relevantDays.length} dias relevantes processados`)
+        return relevantDays
+    }
+
+    // PASSO 2: DIAGRAMA DE VENN - Teoria de Conjuntos
+    applyVennDiagram(nasaData) {
+        if (nasaData.length === 0) {
+            throw new Error('Dados NASA insuficientes para análise de Venn')
+        }
+
+        console.log('Aplicando Diagrama de Venn aos dados NASA...')
+
+        // DEFINIR CONJUNTOS BASEADOS NOS DADOS NASA
+
+        // Conjunto A: Estados de Precipitação
+        const A = {
+            dry: nasaData.filter(d => d.precipitation < WEATHER_THRESHOLDS.rain.light),
+            lightRain: nasaData.filter(d =>
+                d.precipitation >= WEATHER_THRESHOLDS.rain.light &&
+                d.precipitation < WEATHER_THRESHOLDS.rain.moderate
+            ),
+            heavyRain: nasaData.filter(d => d.precipitation >= WEATHER_THRESHOLDS.rain.moderate)
+        }
+
+        // Conjunto B: Estados de Temperatura
+        const B = {
+            cold: nasaData.filter(d => d.tempMean && d.tempMean < WEATHER_THRESHOLDS.temperature.cold),
+            mild: nasaData.filter(d =>
+                d.tempMean &&
+                d.tempMean >= WEATHER_THRESHOLDS.temperature.cold &&
+                d.tempMean < WEATHER_THRESHOLDS.temperature.warm
+            ),
+            hot: nasaData.filter(d => d.tempMean && d.tempMean >= WEATHER_THRESHOLDS.temperature.warm)
+        }
+
+        // Conjunto C: Estados de Umidade
+        const C = {
+            lowHumidity: nasaData.filter(d => d.humidity && d.humidity < WEATHER_THRESHOLDS.humidity.low),
+            moderateHumidity: nasaData.filter(d =>
+                d.humidity &&
+                d.humidity >= WEATHER_THRESHOLDS.humidity.low &&
+                d.humidity < WEATHER_THRESHOLDS.humidity.high
+            ),
+            highHumidity: nasaData.filter(d => d.humidity && d.humidity >= WEATHER_THRESHOLDS.humidity.high)
+        }
+
+        // CALCULAR INTERSEÇÕES DO DIAGRAMA DE VENN
+        const total = nasaData.length
+
+        const intersections = {
+            // Interseções de 2 conjuntos
+            dryAndLowHumidity: this.intersectSets(A.dry, C.lowHumidity).length / total,
+            rainAndHighHumidity: this.intersectSets(
+                A.lightRain.concat(A.heavyRain),
+                C.highHumidity
+            ).length / total,
+            coldAndRain: this.intersectSets(
+                A.lightRain.concat(A.heavyRain),
+                B.cold
+            ).length / total,
+
+            // Interseções de 3 conjuntos (centro do Venn)
+            idealSunny: this.intersectThreeSets(A.dry, B.mild, C.lowHumidity).length / total,
+            stormConditions: this.intersectThreeSets(A.heavyRain, B.mild, C.highHumidity).length / total
+        }
+
+        // Probabilidades básicas (conjuntos individuais)
+        const basicProbabilities = {
+            precipitation: {
+                dry: A.dry.length / total,
+                lightRain: A.lightRain.length / total,
+                heavyRain: A.heavyRain.length / total
+            },
+            temperature: {
+                cold: B.cold.length / total,
+                mild: B.mild.length / total,
+                hot: B.hot.length / total
+            },
+            humidity: {
+                low: C.lowHumidity.length / total,
+                moderate: C.moderateHumidity.length / total,
+                high: C.highHumidity.length / total
+            }
+        }
+
+        console.log('Interseções de Venn calculadas:', intersections)
+
+        return {
+            sets: { A, B, C },
+            intersections,
+            basicProbabilities,
+            totalDays: total
+        }
+    }
+
+    // PASSO 3: TEOREMA DE BAYES
+    applyBayesTheorem(vennAnalysis, currentConditions, nasaData) {
+        console.log('Aplicando Teorema de Bayes com condições atuais...')
+
+        // PRIORS (probabilidades a priori baseadas no histórico)
+        const priors = {
+            sunny: vennAnalysis.intersections.idealSunny || 0.1,
+            rainy: vennAnalysis.basicProbabilities.precipitation.lightRain +
+                vennAnalysis.basicProbabilities.precipitation.heavyRain,
+            cloudy: vennAnalysis.intersections.rainAndHighHumidity || 0.1,
+            stormy: vennAnalysis.intersections.stormConditions || 0.05
+        }
+
+        // LIKELIHOOD (probabilidade das condições atuais dado cada evento)
+        const likelihoods = this.calculateLikelihoods(currentConditions, nasaData)
+
+        // EVIDÊNCIA (probabilidade marginal das condições atuais)
+        const evidence = Object.keys(priors).reduce((sum, event) => {
+            return sum + (likelihoods[event] * priors[event])
+        }, 0)
+
+        // POSTERIORS (Teorema de Bayes): P(Evento|Evidência) = P(Evidência|Evento) × P(Evento) / P(Evidência)
+        const posteriors = {}
+        Object.keys(priors).forEach(event => {
+            posteriors[event] = evidence > 0 ?
+                (likelihoods[event] * priors[event]) / evidence :
+                priors[event]
+        })
+
+        console.log('Bayes - Priors:', priors)
+        console.log('Bayes - Likelihoods:', likelihoods)
+        console.log('Bayes - Posteriors:', posteriors)
+
+        return {
+            priors,
+            likelihoods,
+            evidence,
+            posteriors,
+            method: 'bayes_theorem'
+        }
+    }
+
+    // Calcular Likelihood P(Condições Atuais | Evento)
+    calculateLikelihoods(currentConditions, nasaData) {
+        // Encontrar dias históricos com condições similares às atuais
+        const similarDays = nasaData.filter(day => {
+            const tempDiff = day.tempMean ? Math.abs(day.tempMean - currentConditions.temperature) : 100
+            const humidityDiff = day.humidity ? Math.abs(day.humidity - currentConditions.humidity) : 100
+            const pressureDiff = day.pressure ? Math.abs(day.pressure - currentConditions.pressure) : 100
+
+            // Considerar "similar" se diferenças estão dentro de tolerâncias
+            return tempDiff <= 5 && humidityDiff <= 20 && pressureDiff <= 10
+        })
+
+        console.log(`Encontrados ${similarDays.length} dias similares às condições atuais`)
+
+        if (similarDays.length === 0) {
+            // Sem dias similares, usar distribuição uniforme
+            return { sunny: 0.25, rainy: 0.25, cloudy: 0.25, stormy: 0.25 }
+        }
+
+        // Calcular likelihood baseado nos dias similares
+        const likelihoods = {
+            sunny: similarDays.filter(d =>
+                d.precipitation < WEATHER_THRESHOLDS.rain.light &&
+                d.humidity < WEATHER_THRESHOLDS.humidity.moderate
+            ).length / similarDays.length,
+
+            rainy: similarDays.filter(d =>
+                d.precipitation >= WEATHER_THRESHOLDS.rain.light
+            ).length / similarDays.length,
+
+            cloudy: similarDays.filter(d =>
+                d.humidity >= WEATHER_THRESHOLDS.humidity.high
+            ).length / similarDays.length,
+
+            stormy: similarDays.filter(d =>
+                d.precipitation >= WEATHER_THRESHOLDS.rain.moderate &&
+                d.humidity >= WEATHER_THRESHOLDS.humidity.high
+            ).length / similarDays.length
+        }
+
+        return likelihoods
+    }
+
+    // Fallback se não há condições atuais - usar apenas priors
+    getPriorProbabilities(vennAnalysis) {
+        const priors = {
+            sunny: vennAnalysis.intersections.dryAndLowHumidity,
+            rainy: vennAnalysis.basicProbabilities.precipitation.lightRain +
+                vennAnalysis.basicProbabilities.precipitation.heavyRain,
+            cloudy: vennAnalysis.intersections.rainAndHighHumidity,
+            stormy: vennAnalysis.intersections.stormConditions,
+            windy: 0.1, // Estimativa básica
+            snowy: vennAnalysis.intersections.coldAndRain * 0.3 // Parte da chuva fria como neve
+        }
+
+        return {
+            priors,
+            posteriors: priors,
+            method: 'prior_probabilities_only'
+        }
+    }
+
+    // Calcular probabilidades específicas
+    calculateWindyProbability(nasaData, currentConditions = null) {
+        const windyDays = nasaData.filter(d =>
+            d.windSpeed && d.windSpeed > WEATHER_THRESHOLDS.wind.moderate
+        ).length
+
+        let baseProb = nasaData.length > 0 ? windyDays / nasaData.length : 0.1
+
+        // Ajuste Bayesiano se há condições atuais
+        if (currentConditions && currentConditions.windSpeed) {
+            const adjustment = currentConditions.windSpeed > WEATHER_THRESHOLDS.wind.moderate ? 1.5 : 0.7
+            baseProb *= adjustment
+        }
+
+        return Math.max(Math.min(baseProb, 1.0), 0.02) // Entre 2% e 100%
+    }
+
+    calculateSnowyProbability(nasaData, currentConditions = null) {
+        const coldRainyDays = nasaData.filter(d =>
+            d.precipitation > WEATHER_THRESHOLDS.rain.light &&
+            d.tempMean && d.tempMean < WEATHER_THRESHOLDS.temperature.cold
+        ).length
+
+        let baseProb = nasaData.length > 0 ? (coldRainyDays / nasaData.length) * 0.5 : 0.05 // 50% da chuva fria vira neve
+
+        // Ajuste Bayesiano se há condições atuais
+        if (currentConditions && currentConditions.temperature !== undefined) {
+            const adjustment = currentConditions.temperature < WEATHER_THRESHOLDS.temperature.cold ? 2.0 : 0.1
+            baseProb *= adjustment
+        }
+
+        return Math.max(Math.min(baseProb, 1.0), 0.01) // Entre 1% e 100%
+    }
+
+    // Calcular confiança baseada na qualidade dos dados NASA
+    calculateConfidence(nasaData) {
+        const dataPoints = nasaData.length
+        const dataCompleteness = nasaData.filter(d =>
+            d.precipitation !== null && d.tempMean !== null && d.humidity !== null
+        ).length / Math.max(dataPoints, 1)
+
+        const baseConfidence = Math.min(dataPoints / 100, 1.0) * 0.7
+        const completenessBonus = dataCompleteness * 0.3
+
+        return Math.min(baseConfidence + completenessBonus, 0.9) // Máximo 90%
+    }
+
+    // UTILITÁRIOS PARA INTERSEÇÕES
+    intersectSets(setA, setB) {
+        return setA.filter(dayA => setB.some(dayB => dayA.date === dayB.date))
+    }
+
+    intersectThreeSets(setA, setB, setC) {
+        return setA.filter(dayA =>
+            setB.some(dayB => dayA.date === dayB.date) &&
+            setC.some(dayC => dayA.date === dayC.date)
+        )
+    }
+
+    parseNASADate(dateStr) {
+        // Converter YYYYMMDD para Date
+        return new Date(
+            parseInt(dateStr.substring(0, 4)),
+            parseInt(dateStr.substring(4, 6)) - 1,
+            parseInt(dateStr.substring(6, 8))
+        )
+    }
 }
 
-export default ProbabilityCalculator
+export default NASAVennBayesCalculator

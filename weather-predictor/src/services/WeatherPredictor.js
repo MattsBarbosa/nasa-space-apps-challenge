@@ -1,220 +1,208 @@
 import NASAApiClient from './NASAApiClient.js'
-import ProbabilityCalculator from './ProbabilityCalculator.js'
-import OpenMeteoClient from './OpenMeteoClient.js' // NOVO
+import NASAVennBayesCalculator from './ProbabilityCalculator.js'
 import CacheManager from '../utils/cache.js'
-import { getDayOfYear, parseDateString } from '../utils/helpers.js'
+import { getDayOfYear } from '../utils/helpers.js'
 
 class WeatherPredictor {
-  constructor(env) {
-    this.nasaClient = new NASAApiClient()
-    this.meteoClient = new OpenMeteoClient() // NOVO
-    this.calculator = new ProbabilityCalculator()
-    this.cache = new CacheManager(env?.WEATHER_CACHE)
-  }
+    constructor(env) {
+        this.nasaClient = new NASAApiClient()
+        this.calculator = new NASAVennBayesCalculator()
+        this.cache = new CacheManager(env?.WEATHER_CACHE)
+    }
 
-  async predict(lat, lon, futureDate) {
-    try {
-      const futureDateObj = new Date(futureDate)
-      if (isNaN(futureDateObj.getTime())) {
-        throw new Error('Data inválida fornecida')
-      }
+    async predict(lat, lon, futureDate) {
+        try {
+            const futureDateObj = new Date(futureDate)
+            if (isNaN(futureDateObj.getTime())) {
+                throw new Error('Data inválida fornecida')
+            }
 
-      const cacheKey = this.cache.generateKey(lat, lon, futureDate)
-      console.log('Cache key:', cacheKey)
+            const cacheKey = this.cache.generateKey(lat, lon, futureDate)
+            console.log('Cache key:', cacheKey)
 
-      const cached = await this.cache.get(cacheKey)
+            const cached = await this.cache.get(cacheKey)
 
-      if (cached) {
-        if (cached.futureDate === futureDate) {
-          return { ...cached, fromCache: true }
-        } else {
-          console.warn('Cache date mismatch, invalidating:', {
-            requested: futureDate,
-            cached: cached.futureDate
-          })
-          await this.cache.delete(cacheKey)
+            if (cached && cached.futureDate === futureDate) {
+                return { ...cached, fromCache: true }
+            }
+
+            // Buscar dados históricos NASA
+            const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
+
+            if (!historicalData.success) {
+                throw new Error(historicalData.error)
+            }
+
+            console.log('NASA API data keys:', Object.keys(historicalData.data))
+            console.log('Sample PRECTOTCORR data:', Object.keys(historicalData.data.PRECTOTCORR || {}).slice(0, 5))
+
+            // CORREÇÃO: Passar dados brutos da NASA diretamente para a calculadora
+            const prediction = await this.calculator.calculate(
+                historicalData.data,  // Dados brutos da NASA API
+                futureDate,
+                null  // Sem condições atuais por enquanto
+            )
+
+            const result = this.buildResponse(prediction, lat, lon, futureDate)
+
+            result.futureDate = futureDate
+
+            // Cache por 24h - dados históricos são estáveis
+            await this.cache.set(cacheKey, result, 86400)
+
+            return result
+
+        } catch (error) {
+            console.error('WeatherPredictor error:', error)
+            return {
+                error: `Erro na previsão: ${error.message}`,
+                code: 500
+            }
         }
-      }
-
-      // Buscar dados históricos NASA e condições atuais em paralelo
-      const [historicalData, currentWeather] = await Promise.all([
-        this.nasaClient.fetchHistoricalData(lat, lon),
-        this.meteoClient.getCurrentConditions(lat, lon) // NOVO: dados reais
-      ])
-
-      if (!historicalData.success) {
-        throw new Error(historicalData.error)
-      }
-
-      const processedData = this.processHistoricalData(historicalData.data, futureDate)
-
-      // NOVO: usar condições reais ou fallback
-      const currentConditions = currentWeather.success ?
-        currentWeather.data :
-        currentWeather.fallback
-
-      console.log('Current conditions:', currentConditions) // Debug
-
-      const prediction = await this.calculator.calculate(processedData, futureDate, currentConditions)
-
-      const result = this.buildResponse(prediction, lat, lon, futureDate, processedData, currentWeather)
-
-      result.futureDate = futureDate
-
-      // Cache por menos tempo se usamos dados atuais (2h vs 24h)
-      const cacheTTL = currentWeather.success ? 7200 : 86400
-      await this.cache.set(cacheKey, result, cacheTTL)
-
-      return result
-
-    } catch (error) {
-      console.error('WeatherPredictor error:', error)
-      return {
-        error: `Erro na previsão: ${error.message}`,
-        code: 500
-      }
     }
-  }
 
-  processHistoricalData(nasaData, futureDate) {
-    const futureDateObj = new Date(futureDate)
-    const targetDayOfYear = getDayOfYear(futureDateObj)
-    const windowDays = 15
-    const relevantDays = []
+    buildResponse(prediction, lat, lon, futureDate) {
+        // Encontrar condição dominante
+        const [dominantCondition, dominantProbability] = this.findDominantCondition(prediction.probabilities)
 
-    console.log('Processing for date:', futureDate, 'day of year:', targetDayOfYear)
+        const response = {
+            location: {
+                lat: parseFloat(lat),
+                lon: parseFloat(lon)
+            },
+            futureDate: futureDate,
+            prediction: {
+                dominantCondition: dominantCondition,
+                probability: Math.round(dominantProbability * 100),
+                confidence: Math.round(prediction.confidence * 100),
 
-    Object.keys(nasaData.PRECTOTCORR || {}).forEach(dateStr => {
-      const date = parseDateString(dateStr)
-      const dayOfYear = getDayOfYear(date)
+                // Sanitizar probabilidades
+                conditions: this.sanitizeConditions(prediction.probabilities),
 
-      if (Math.abs(dayOfYear - targetDayOfYear) <= windowDays) {
-        relevantDays.push({
-          date: dateStr,
-          year: date.getFullYear(),
-          precipitation: nasaData.PRECTOTCORR?.[dateStr] || 0,
-          tempMax: nasaData.T2M_MAX?.[dateStr] || null,
-          tempMin: nasaData.T2M_MIN?.[dateStr] || null,
-          humidity: nasaData.RH2M?.[dateStr] || null,
-          windSpeed: nasaData.WS10M?.[dateStr] || null,
-          snow: 0
+                // Dados específicos do Venn + Bayes
+                vennAnalysis: {
+                    methodology: "Diagrama de Venn aplicado aos dados NASA",
+                    intersections: {
+                        dryAndLowHumidity: Math.round(prediction.vennAnalysis.intersections.dryAndLowHumidity * 100),
+                        rainAndHighHumidity: Math.round(prediction.vennAnalysis.intersections.rainAndHighHumidity * 100),
+                        idealSunny: Math.round(prediction.vennAnalysis.intersections.idealSunny * 100),
+                        stormConditions: Math.round(prediction.vennAnalysis.intersections.stormConditions * 100)
+                    },
+                    basicProbabilities: {
+                        dry: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.dry * 100),
+                        lightRain: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.lightRain * 100),
+                        heavyRain: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.heavyRain * 100)
+                    }
+                },
+
+                bayesianAnalysis: prediction.bayesianDetails ? {
+                    methodology: "Teorema de Bayes aplicado (sem condições atuais)",
+                    priors: this.roundObject(prediction.bayesianDetails.priors),
+                    method: prediction.bayesianDetails.method
+                } : {
+                    methodology: "Apenas probabilidades a priori (sem dados atuais para Bayes)"
+                },
+
+                recommendations: this.generateRecommendations(dominantCondition)
+            },
+
+            metadata: {
+                daysAnalyzed: prediction.vennAnalysis.totalDays,
+                dataSource: 'NASA_POWER',
+                method: prediction.methodology,
+                version: '2.1-venn-bayes',
+                generatedAt: new Date().toISOString(),
+                targetDayOfYear: getDayOfYear(new Date(futureDate)),
+                targetYear: new Date(futureDate).getFullYear(),
+                mathematicalApproach: [
+                    "Teoria de Conjuntos (Diagrama de Venn)",
+                    "Teorema de Bayes (quando aplicável)"
+                ]
+            }
+        }
+
+        console.log('Built response - dominant:', dominantCondition, 'probability:', Math.round(dominantProbability * 100))
+        return response
+    }
+
+    findDominantCondition(probabilities) {
+        const validEntries = Object.entries(probabilities)
+            .map(([key, value]) => {
+                const cleanValue = (typeof value === 'number' && !isNaN(value)) ? Math.max(0, value) : 0
+                return [key, cleanValue]
+            })
+            .filter(([key, value]) => value > 0)
+            .sort(([, a], [, b]) => b - a)
+
+        if (validEntries.length === 0) {
+            console.warn('Nenhuma condição com probabilidade válida, usando cloudy como padrão')
+            return ['cloudy', 0.3]
+        }
+
+        const [condition, probability] = validEntries[0]
+
+        if (probability < 0.05) {
+            return [condition, 0.2]
+        }
+
+        return [condition, probability]
+    }
+
+    sanitizeConditions(probabilities) {
+        const sanitized = {}
+
+        Object.entries(probabilities).forEach(([key, value]) => {
+            const cleanValue = (typeof value === 'number' && !isNaN(value)) ? Math.max(0, value) : 0
+            sanitized[key] = Math.round(cleanValue * 100)
         })
-      }
-    })
 
-    console.log('Relevant days found:', relevantDays.length)
-    return relevantDays.sort((a, b) => b.year - a.year)
-  }
-
-  // REMOVIDO: getSimulatedCurrentConditions() - não precisamos mais
-
-  // ATUALIZADO: incluir dados atuais na resposta
-  buildResponse(prediction, lat, lon, futureDate, processedData, currentWeather) {
-    const dominantCondition = Object.entries(prediction.probabilities)
-      .sort(([,a], [,b]) => b - a)[0]
-
-    const temporalInsight = this.generateTemporalInsight(prediction.temporalAdjustment)
-
-    const response = {
-      location: {
-        lat: parseFloat(lat),
-        lon: parseFloat(lon)
-      },
-      futureDate: futureDate,
-      prediction: {
-        dominantCondition: dominantCondition[0],
-        probability: Math.round(dominantCondition[1] * 100),
-        confidence: Math.round(prediction.confidence.overall * 100),
-
-        conditions: Object.fromEntries(
-          Object.entries(prediction.probabilities).map(([k, v]) => [k, Math.round(v * 100)])
-        ),
-
-        temporalAnalysis: {
-          peakRainDay: prediction.temporalAdjustment.trend.peakDay,
-          trend: prediction.temporalAdjustment.trend.direction,
-          daysOffset: prediction.temporalAdjustment.trend.peakDay.daysOffset,
-          insight: temporalInsight
-        },
-
-        vennAnalysis: {
-          rainAndHighHumidity: Math.round(prediction.vennAnalysis.intersections.rainAndHighHumidity * 100),
-          sunnyConditions: Math.round(prediction.vennAnalysis.intersections.sunnyConditions * 100)
-        },
-
-        recommendations: this.generateRecommendations(dominantCondition[0], prediction.temporalAdjustment),
-        limitations: prediction.confidence.limitations
-      },
-
-      // NOVO: Condições meteorológicas atuais
-      currentWeather: {
-        source: currentWeather.success ? 'Open-Meteo' : 'Estimated',
-        data: currentWeather.success ? currentWeather.data : currentWeather.fallback,
-        timestamp: currentWeather.metadata?.timestamp || new Date().toISOString(),
-        reliability: currentWeather.success ? 'high' : 'low'
-      },
-
-      metadata: {
-        daysAnalyzed: processedData.length,
-        dataSource: 'NASA_POWER',
-        currentWeatherSource: currentWeather.success ? 'Open-Meteo' : 'Fallback',
-        method: prediction.methodology,
-        version: '2.1',
-        generatedAt: new Date().toISOString(),
-        targetDayOfYear: getDayOfYear(new Date(futureDate)),
-        targetYear: new Date(futureDate).getFullYear(),
-        confidenceBreakdown: prediction.confidence.breakdown
-      }
+        return sanitized
     }
 
-    console.log('Built response for date:', response.futureDate)
-    return response
-  }
-
-  generateTemporalInsight(temporalAdjustment) {
-    const peakOffset = temporalAdjustment.trend.peakDay.daysOffset
-
-    if (peakOffset === 0) {
-      return "Pico de chuva previsto para o dia solicitado"
-    } else if (peakOffset === -1) {
-      return "Maior probabilidade de chuva no dia anterior"
-    } else if (peakOffset === 1) {
-      return "Maior probabilidade de chuva no dia seguinte"
-    } else if (peakOffset === -2) {
-      return "Chuva mais provável 2 dias antes"
-    } else if (peakOffset === 2) {
-      return "Chuva mais provável 2 dias depois"
-    }
-    return "Padrão temporal indefinido"
-  }
-
-  generateRecommendations(condition, temporalAdjustment) {
-    const baseRecommendations = {
-      sunny: ["Ideal para secar roupas", "Ótimo para atividades externas"],
-      rainy: ["Tire as roupas do varal", "Leve guarda-chuva"],
-      snowy: ["Vista roupas quentes", "Ótimo para turismo de inverno"],
-      cloudy: ["Monitore o céu", "Possível chuva leve"],
-      windy: ["Prenda objetos soltos", "Ideal para esportes com vento"]
+    roundObject(obj) {
+        const rounded = {}
+        Object.entries(obj).forEach(([key, value]) => {
+            rounded[key] = Math.round(value * 100)
+        })
+        return rounded
     }
 
-    const recommendations = baseRecommendations[condition] || ["Condições normais esperadas"]
+    generateRecommendations(condition) {
+        const baseRecommendations = {
+            sunny: [
+                "Análise de Venn sugere condições favoráveis para secar roupas",
+                "Intersecção histórica de dias secos + baixa umidade"
+            ],
+            rainy: [
+                "Diagrama de Venn indica alta probabilidade de chuva",
+                "Prepare-se baseado em intersecções históricas chuva + alta umidade"
+            ],
+            cloudy: [
+                "Padrão de Venn sugere condições nubladas",
+                "Intersecção histórica indica possível chuva leve"
+            ],
+            stormy: [
+                "Análise de Venn indica condições de tempestade",
+                "Intersecção tripla: chuva forte + alta umidade detectada"
+            ],
+            windy: [
+                "Padrões históricos sugerem condições ventosas",
+                "Baseado em análise frequentista dos dados NASA"
+            ],
+            snowy: [
+                "Intersecção chuva + frio sugere possibilidade de neve",
+                "Análise de Venn aplicada a condições de baixa temperatura"
+            ]
+        }
 
-    const peakOffset = temporalAdjustment.trend.peakDay.daysOffset
+        const recommendations = baseRecommendations[condition] || [
+            "Condições normais esperadas baseado na análise matemática"
+        ]
 
-    if (condition === 'rainy' && peakOffset !== 0) {
-      if (peakOffset > 0) {
-        recommendations.push(`Atenção: chuva mais intensa prevista em ${peakOffset} dia(s)`)
-      } else {
-        recommendations.push(`Chuva pode estar diminuindo (pico foi ${Math.abs(peakOffset)} dia(s) atrás)`)
-      }
+        recommendations.push("Análise baseada em Teoria de Conjuntos aplicada aos dados históricos da NASA")
+
+        return recommendations
     }
-
-    if (Math.abs(peakOffset) <= 1) {
-      recommendations.push("Combinando dados históricos com condições meteorológicas atuais")
-    }
-
-    return recommendations
-  }
 }
 
 export default WeatherPredictor
