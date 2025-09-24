@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cloud, Sun, CloudRain, Snowflake, Wind, AlertTriangle } from 'lucide-react';
+import { Cloud, Sun, CloudRain, Snowflake, Wind, AlertTriangle, TrendingUp, Eye, Thermometer } from 'lucide-react';
 
 const WeatherVisualization = ({ weatherData }) => {
     // Tratar valores nulos e estrutura de dados
@@ -19,29 +19,55 @@ const WeatherVisualization = ({ weatherData }) => {
     const temporalInsight = weatherData?.prediction?.temporalAnalysis?.insight;
     const limitations = weatherData?.prediction?.limitations || [];
 
-    // Configuração dos ícones e cores (mesmo de antes)
+    // Configuração dos ícones e cores para UI de clima
     const conditionConfig = {
-        sunny: { icon: Sun, color: '#FCD34D', bgColor: '#FEF3C7', label: 'Ensolarado' },
-        rainy: { icon: CloudRain, color: '#3B82F6', bgColor: '#DBEAFE', label: 'Chuvoso' },
-        cloudy: { icon: Cloud, color: '#6B7280', bgColor: '#F3F4F6', label: 'Nublado' },
-        snowy: { icon: Snowflake, color: '#E5E7EB', bgColor: '#F9FAFB', label: 'Neve' },
-        windy: { icon: Wind, color: '#10B981', bgColor: '#D1FAE5', label: 'Ventoso' }
+        sunny: {
+            icon: Sun,
+            color: '#FBBF24',
+            label: 'Ensolarado',
+            emoji: '☀️'
+        },
+        rainy: {
+            icon: CloudRain,
+            color: '#3B82F6',
+            label: 'Chuvoso',
+            emoji: '🌧️'
+        },
+        cloudy: {
+            icon: Cloud,
+            color: '#6B7280',
+            label: 'Nublado',
+            emoji: '☁️'
+        },
+        snowy: {
+            icon: Snowflake,
+            color: '#E5E7EB',
+            label: 'Neve',
+            emoji: '❄️'
+        },
+        windy: {
+            icon: Wind,
+            color: '#10B981',
+            label: 'Ventoso',
+            emoji: '��'
+        }
     };
 
-    // Componente de barra de progresso circular
-    const CircularProgress = ({ value, size = 120, strokeWidth = 8, color = '#3B82F6' }) => {
+    // Componente de barra de progresso circular moderna
+    const CircularProgress = ({ value, size = 160, strokeWidth = 12, condition = 'sunny' }) => {
         const radius = (size - strokeWidth) / 2;
         const circumference = radius * 2 * Math.PI;
         const offset = circumference - (value / 100) * circumference;
+        const config = conditionConfig[condition] || conditionConfig.sunny;
 
         return (
-            <div className="relative inline-flex items-center justify-center">
-                <svg width={size} height={size} className="transform -rotate-90">
+            <div className="weather-visualization__circular-progress">
+                <svg width={size} height={size} className="weather-visualization__circular-progress-svg">
                     <circle
                         cx={size / 2}
                         cy={size / 2}
                         r={radius}
-                        stroke="#E5E7EB"
+                        stroke="rgba(255, 255, 255, 0.2)"
                         strokeWidth={strokeWidth}
                         fill="transparent"
                     />
@@ -49,83 +75,102 @@ const WeatherVisualization = ({ weatherData }) => {
                         cx={size / 2}
                         cy={size / 2}
                         r={radius}
-                        stroke={color}
+                        stroke={config.color}
                         strokeWidth={strokeWidth}
                         strokeDasharray={circumference}
                         strokeDashoffset={offset}
                         strokeLinecap="round"
                         fill="transparent"
-                        className="transition-all duration-700 ease-out"
+                        className="weather-visualization__circular-progress-bar"
+                        style={{
+                            filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))'
+                        }}
                     />
                 </svg>
-                <div className="absolute flex flex-col items-center">
-                    <span className="text-2xl font-bold text-gray-800">{value}%</span>
-                    <span className="text-xs text-gray-500">probabilidade</span>
+                <div className="weather-visualization__circular-progress-content">
+                    <div className="weather-visualization__circular-progress-emoji">
+                        {config.emoji}
+                    </div>
+                    <span className="weather-visualization__circular-progress-value">{value}%</span>
+                    <span className="weather-visualization__circular-progress-label">probabilidade</span>
                 </div>
             </div>
         );
     };
 
-    // Componente de card de condição
+    // Componente de card de condição moderna
     const ConditionCard = ({ condition, value, isMain = false }) => {
         const config = conditionConfig[condition];
         const Icon = config.icon;
+        const cardClass = `weather-visualization__condition-card ${isMain ? 'weather-visualization__condition-card--main' : ''}`;
 
         return (
-            <div className={`relative p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${isMain ? 'border-blue-300 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
-                }`}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div
-                            className="p-2 rounded-lg"
-                            style={{ backgroundColor: config.bgColor }}
-                        >
-                            <Icon size={24} color={config.color} />
+            <div className={cardClass}>
+                <div className="weather-visualization__condition-card-shine"></div>
+
+                <div className="weather-visualization__condition-card-content">
+                    <div className="weather-visualization__condition-card-header">
+                        <div className="weather-visualization__condition-card-info">
+                            <div className="weather-visualization__condition-card-icon-wrapper">
+                                <Icon size={24} color={config.color} className="weather-visualization__condition-card-icon" />
+                            </div>
+                            <div className="weather-visualization__condition-card-text">
+                                <p className="weather-visualization__condition-card-title">{config.label}</p>
+                                <p className="weather-visualization__condition-card-subtitle">{value}% chance</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-medium text-gray-800">{config.label}</p>
-                            <p className="text-sm text-gray-500">{value}% de chance</p>
+
+                        <div className="weather-visualization__condition-card-emoji">
+                            {config.emoji}
                         </div>
                     </div>
 
-                    {/* Barra de progresso horizontal */}
-                    <div className="w-20">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="weather-visualization__condition-card-progress">
+                        <div className="weather-visualization__condition-card-progress-bar">
                             <div
-                                className="h-2 rounded-full transition-all duration-700"
+                                className="weather-visualization__condition-card-progress-fill"
                                 style={{
                                     width: `${value}%`,
-                                    backgroundColor: config.color,
-                                    maxWidth: '100%'
+                                    background: `linear-gradient(90deg, ${config.color}80, ${config.color})`,
+                                    boxShadow: `0 0 10px ${config.color}40`
                                 }}
                             />
                         </div>
-                        <p className="text-right text-xs text-gray-400 mt-1">{value}%</p>
+                        <div className="weather-visualization__condition-card-progress-labels">
+                            <span>0%</span>
+                            <span className="weather-visualization__condition-card-progress-value">{value}%</span>
+                            <span>100%</span>
+                        </div>
                     </div>
                 </div>
 
                 {isMain && (
-                    <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-                        Dominante
+                    <div className="weather-visualization__condition-card-badge">
+                        ⭐ Dominante
                     </div>
                 )}
             </div>
         );
     };
 
-    // Componente de alerta para valores baixos
+    // Componente de alerta moderno
     const LowConfidenceAlert = ({ confidence }) => {
         if (confidence >= 60) return null;
 
         return (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center space-x-2">
-                    <AlertTriangle className="text-yellow-600" size={20} />
-                    <div>
-                        <h4 className="font-medium text-yellow-800">Confiança Baixa</h4>
-                        <p className="text-sm text-yellow-700">
-                            Confiança de apenas {confidence}%. Recomendamos consultar previsões meteorológicas atuais.
+            <div className="weather-visualization__alert weather-visualization__alert--warning">
+                <div className="weather-visualization__alert-content">
+                    <AlertTriangle className="weather-visualization__alert-icon" />
+                    <div className="weather-visualization__alert-text">
+                        <h4 className="weather-visualization__alert-title">⚠️ Confiança Baixa</h4>
+                        <p className="weather-visualization__alert-description">
+                            Confiança de apenas <strong>{confidence}%</strong>. Recomendamos consultar
+                            previsões meteorológicas atuais para maior precisão.
                         </p>
+                        <div className="weather-visualization__alert-indicator">
+                            <div className="weather-visualization__alert-dot"></div>
+                            <span className="weather-visualization__alert-status">Dados limitados disponíveis</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,22 +181,32 @@ const WeatherVisualization = ({ weatherData }) => {
     const hasValidData = Object.values(safeConditions).some(val => val > 0);
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
-                    Previsão Meteorológica
-                </h2>
+        <div className="weather-visualization">
+            <div className="weather-visualization__container">
+                {/* Header */}
+                <div className="weather-visualization__header">
+                    <h2 className="weather-visualization__title">
+                        Análise Meteorológica
+                    </h2>
+                    <div className="weather-visualization__subtitle">
+                        <TrendingUp className="weather-visualization__subtitle-icon" />
+                        <span>Baseado em dados históricos da NASA</span>
+                    </div>
+                </div>
 
                 {/* Informações de localização e data */}
                 {(location || futureDate) && (
-                    <div className="text-center mb-6 p-4 bg-blue-50 rounded-lg">
+                    <div className="weather-visualization__location-info">
                         {location && (
-                            <p className="text-lg font-medium text-blue-800">
-                                📍 {location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°
-                            </p>
+                            <div className="weather-visualization__location">
+                                <div className="weather-visualization__location-dot"></div>
+                                <p className="weather-visualization__location-text">
+                                    📍 {location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°
+                                </p>
+                            </div>
                         )}
                         {futureDate && (
-                            <p className="text-blue-600">
+                            <p className="weather-visualization__date">
                                 📅 {new Date(futureDate).toLocaleDateString('pt-BR', {
                                     weekday: 'long',
                                     year: 'numeric',
@@ -167,83 +222,116 @@ const WeatherVisualization = ({ weatherData }) => {
 
                 {/* Insights temporais */}
                 {temporalInsight && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                        <h4 className="font-medium text-blue-800">💡 Insight Temporal</h4>
-                        <p className="text-blue-700">{temporalInsight}</p>
+                    <div className="weather-visualization__alert weather-visualization__alert--info">
+                        <div className="weather-visualization__alert-content">
+                            <Eye className="weather-visualization__alert-icon" />
+                            <div className="weather-visualization__alert-text">
+                                <h4 className="weather-visualization__alert-title">💡 Insight Temporal</h4>
+                                <p className="weather-visualization__alert-description">{temporalInsight}</p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {/* Visualização principal - Gráfico circular */}
-                <div className="flex justify-center items-center mb-8">
-                    <div className="text-center">
+                <div className="weather-visualization__main-chart">
+                    <div className="weather-visualization__chart-container">
                         <CircularProgress
                             value={probability}
-                            size={140}
-                            color={probability < 30 ? '#10B981' :
-                                probability < 70 ? '#F59E0B' : '#EF4444'}
+                            size={180}
+                            condition={dominantCondition}
                         />
-                        <p className="mt-4 text-lg font-semibold text-gray-700">
-                            Condição Principal: <span className="text-blue-600 capitalize">{dominantCondition}</span>
-                        </p>
-                        <p className="text-sm text-gray-500">
-                            Confiança: {confidence}%
-                        </p>
+                        <div className="weather-visualization__chart-info">
+                            <p className="weather-visualization__chart-label">
+                                Condição Principal
+                            </p>
+                            <p className="weather-visualization__chart-condition">
+                                {conditionConfig[dominantCondition]?.label || dominantCondition}
+                            </p>
+                            <div className="weather-visualization__chart-meta">
+                                <div className="weather-visualization__chart-confidence">
+                                    <Thermometer className="weather-visualization__chart-confidence-icon" />
+                                    <span>Confiança: {confidence}%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Cards de condições detalhadas */}
                 {hasValidData ? (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {Object.entries(safeConditions).map(([condition, value]) => (
-                            <ConditionCard
+                    <div className="weather-visualization__conditions-grid">
+                        {Object.entries(safeConditions).map(([condition, value], index) => (
+                            <div
                                 key={condition}
-                                condition={condition}
-                                value={value}
-                                isMain={condition === dominantCondition}
-                            />
+                                className="weather-visualization__condition-item"
+                                style={{ animationDelay: `${index * 0.1}s` }}
+                            >
+                                <ConditionCard
+                                    condition={condition}
+                                    value={value}
+                                    isMain={condition === dominantCondition}
+                                />
+                            </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-8">
-                        <AlertTriangle className="mx-auto text-gray-400 mb-4" size={48} />
-                        <h3 className="text-lg font-medium text-gray-600 mb-2">
+                    <div className="weather-visualization__empty-state">
+                        <AlertTriangle className="weather-visualization__empty-state-icon" />
+                        <h3 className="weather-visualization__empty-state-title">
                             Dados Insuficientes
                         </h3>
-                        <p className="text-gray-500">
-                            Não foi possível calcular as probabilidades. Verifique os dados históricos.
+                        <p className="weather-visualization__empty-state-description">
+                            Não foi possível calcular as probabilidades meteorológicas.<br />
+                            Verifique os dados históricos da região selecionada.
                         </p>
                     </div>
                 )}
 
-                <div className="mt-8 p-6 bg-gray-50 rounded-xl">
-                    <h3 className="font-semibold text-gray-800 mb-4">Comparação de Condições</h3>
-                    <div className="space-y-3">
+                {/* Comparação de Condições */}
+                <div className="weather-visualization__ranking">
+                    <h3 className="weather-visualization__ranking-title">
+                        <TrendingUp className="weather-visualization__ranking-icon" />
+                        <span>Ranking de Probabilidades</span>
+                    </h3>
+
+                    <div className="weather-visualization__ranking-list">
                         {Object.entries(safeConditions)
                             .sort(([, a], [, b]) => b - a)
-                            .map(([condition, value]) => {
+                            .map(([condition, value], index) => {
                                 const config = conditionConfig[condition];
                                 const Icon = config.icon;
 
                                 return (
-                                    <div key={condition} className="flex items-center space-x-4">
-                                        <div className="flex items-center space-x-2 w-24">
-                                            <Icon size={16} color={config.color} />
-                                            <span className="text-sm font-medium text-gray-700 capitalize">
+                                    <div
+                                        key={condition}
+                                        className="weather-visualization__ranking-item"
+                                        style={{ animationDelay: `${index * 0.1}s` }}
+                                    >
+                                        <div className="weather-visualization__ranking-position">
+                                            {index + 1}
+                                        </div>
+
+                                        <div className="weather-visualization__ranking-info">
+                                            <Icon size={20} color={config.color} className="weather-visualization__ranking-item-icon" />
+                                            <span className="weather-visualization__ranking-label">
                                                 {config.label}
                                             </span>
                                         </div>
 
-                                        <div className="flex-1 bg-gray-200 rounded-full h-3 relative">
+                                        <div className="weather-visualization__ranking-progress">
                                             <div
-                                                className="h-3 rounded-full transition-all duration-700"
+                                                className="weather-visualization__ranking-progress-fill"
                                                 style={{
                                                     width: `${Math.max(value, 2)}%`,
-                                                    backgroundColor: config.color
+                                                    background: `linear-gradient(90deg, ${config.color}80, ${config.color})`,
+                                                    boxShadow: `0 0 10px ${config.color}40`
                                                 }}
                                             />
-                                            <span className="absolute right-2 top-0 text-xs font-medium text-gray-600 leading-3">
-                                                {value}%
-                                            </span>
+                                        </div>
+
+                                        <div className="weather-visualization__ranking-value">
+                                            {value}%
                                         </div>
                                     </div>
                                 );
@@ -253,30 +341,51 @@ const WeatherVisualization = ({ weatherData }) => {
 
                 {/* Limitações da API */}
                 {limitations.length > 0 && (
-                    <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                        <h4 className="font-medium text-orange-800 mb-2">⚠️ Limitações</h4>
-                        <ul className="text-sm text-orange-700 space-y-1">
-                            {limitations.map((limitation, index) => (
-                                <li key={index}>• {limitation}</li>
-                            ))}
-                        </ul>
+                    <div className="weather-visualization__alert weather-visualization__alert--warning">
+                        <div className="weather-visualization__alert-content">
+                            <AlertTriangle className="weather-visualization__alert-icon" />
+                            <div className="weather-visualization__alert-text">
+                                <h4 className="weather-visualization__alert-title">⚠️ Limitações do Sistema</h4>
+                                <ul className="weather-visualization__limitations-list">
+                                    {limitations.map((limitation, index) => (
+                                        <li key={index} className="weather-visualization__limitations-item">
+                                            <div className="weather-visualization__limitations-bullet"></div>
+                                            <span>{limitation}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {/* Debug info */}
-                <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-                    <details className="text-sm">
-                        <summary className="cursor-pointer font-medium text-gray-700">
-                            Dados Técnicos (Debug)
+                <div className="weather-visualization__debug">
+                    <details className="weather-visualization__debug-details">
+                        <summary className="weather-visualization__debug-summary">
+                            <span>🔧 Dados Técnicos (Debug)</span>
+                            <div className="weather-visualization__debug-indicator"></div>
                         </summary>
-                        <pre className="mt-2 text-xs text-gray-600 overflow-auto">
-                            {JSON.stringify({
-                                original: weatherData,
-                                processed: safeConditions,
-                                hasValidData
-                            }, null, 2)}
-                        </pre>
+                        <div className="weather-visualization__debug-content">
+                            <pre className="weather-visualization__debug-code">
+                                {JSON.stringify({
+                                    original: weatherData,
+                                    processed: safeConditions,
+                                    hasValidData,
+                                    dominantCondition,
+                                    confidence
+                                }, null, 2)}
+                            </pre>
+                        </div>
                     </details>
+                </div>
+
+                {/* Decoração de fundo */}
+                <div className="weather-visualization__decoration weather-visualization__decoration--chart">
+                    📊
+                </div>
+                <div className="weather-visualization__decoration weather-visualization__decoration--thermometer">
+                    🌡️
                 </div>
             </div>
         </div>
