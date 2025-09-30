@@ -1,7 +1,7 @@
 import { NASA_POWER_BASE_URL, NASA_PARAMETERS } from '../config/constants.js'
 
 class NASAApiClient {
-  async fetchHistoricalData(lat, lon, yearsBack = 15) {
+  async fetchHistoricalData(lat, lon, yearsBack = 30) {
     try {
       const endYear = new Date().getFullYear()
       const startYear = endYear - yearsBack
@@ -17,12 +17,12 @@ class NASAApiClient {
 
       // Parâmetros corrigidos - remover SNOW que causa 422 em algumas regiões
       const validParameters = [
-        'PRECTOTCORR',  // Precipitação total corrigida
-        'T2M_MAX',      // Temperatura máxima 2m
-        'T2M_MIN',      // Temperatura mínima 2m
-        'RH2M',         // Umidade relativa 2m
+        // 'PRECTOTCORR',  // Precipitação total corrigida
+        // 'T2M_MAX',      // Temperatura máxima 2m
+        // 'T2M_MIN',      // Temperatura mínima 2m
+        // 'RH2M',         // Umidade relativa 2m
         'WS10M',        // Velocidade vento 10m
-        'PS'            // Pressão superfície
+        // 'PS'            // Pressão superfície
         // Removido 'SNOW' - não disponível para todas as regiões
       ]
 
@@ -50,7 +50,7 @@ class NASAApiClient {
         }
       })
 
-      console.log('NASA API Response Status:', response.status) // Debug
+      // console.log('NASA API Response Status:', response.status) // Debug
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -78,10 +78,12 @@ class NASAApiClient {
       }
 
       // Verificar se temos dados suficientes
-      const precipData = data.properties.parameter.PRECTOTCORR
-      if (!precipData || Object.keys(precipData).length < 100) {
-        throw new Error('Dados insuficientes retornados pela NASA API')
-      }
+      // const precipData = data.properties.parameter.PRECTOTCORR
+      // if (!precipData || Object.keys(precipData).length < 100) {
+      //   throw new Error('Dados insuficientes retornados pela NASA API')
+      // }
+
+      console.log("dados sem tratamento" , Object.keys(data))
 
       return {
         success: true,
@@ -90,7 +92,7 @@ class NASAApiClient {
           startYear,
           endYear,
           location: data.geometry?.coordinates || [parseFloat(lon), parseFloat(lat)],
-          dataPoints: Object.keys(precipData).length
+          // dataPoints: Object.keys(precipData).length
         }
       }
 

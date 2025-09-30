@@ -29,28 +29,160 @@ class WeatherPredictor {
             // Buscar dados históricos NASA
             const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
 
-            if (!historicalData.success) {
-                throw new Error(historicalData.error)
+            function calculoDeEvento(historicalData, nomeEvento, nomeParametro, parametroFraco, parametroMedio, parametroForte, parametroIntenso) {
+                let historicalDataArray = []
+
+                let fraco = []
+                let moderado = []
+                let forte = []
+                let intenso = []
+
+
+                Object.values(historicalData.data[parametro]).forEach((data) => {
+
+                historicalDataArray.push(data)
+
+                switch (true) {
+                case data < 5.4:
+                    fraco.push(data);
+                    break;
+
+                case data > 5.5 && data < 10.7:
+                    moderado.push(data);
+                    break;
+
+                case data > 10.8 && data < 17.1:
+                    forte.push(data);
+                    break;
+
+                case data > 17.2:
+                    intenso.push(data);
+                    break;
+                }
+
+            })
+
             }
 
-            console.log('NASA API data keys:', Object.keys(historicalData.data))
-            console.log('Sample PRECTOTCORR data:', Object.keys(historicalData.data.PRECTOTCORR || {}).slice(0, 5))
+            let historicalDataArray = []
 
-            // CORREÇÃO: Passar dados brutos da NASA diretamente para a calculadora
-            const prediction = await this.calculator.calculate(
-                historicalData.data,  // Dados brutos da NASA API
-                futureDate,
-                null  // Sem condições atuais por enquanto
-            )
+            // VENTO
+            let ventoFraco = []
+            let ventoModerado = []
+            let ventoForte = []
+            let ventoIntenso = []
 
-            const result = this.buildResponse(prediction, lat, lon, futureDate)
+            Object.values(historicalData.data['WS10M']).forEach((data) => {
 
-            result.futureDate = futureDate
+                historicalDataArray.push(data)
 
-            // Cache por 24h - dados históricos são estáveis
-            await this.cache.set(cacheKey, result, 86400)
+                if (data < 5.4 ) {
+                    ventoFraco.push(data)
+                }
 
-            return result
+                if (data > 5.5 && data < 10.7) {
+                    ventoModerado.push(data)
+                }
+                
+                if (data > 10.8 && data < 17.1 ) {
+                    ventoForte.push(data)
+                }
+
+                if (data > 17.2) {
+                    ventoIntenso.push(data)
+                }
+            })
+
+            
+            let resultventoFraco = (ventoFraco.length / historicalDataArray.length) * 100
+            let resultventoModerado = (ventoModerado.length / historicalDataArray.length) * 100
+            let resultventoForte = (ventoForte.length / historicalDataArray.length) * 100
+            let resultventoIntenso = (ventoIntenso.length / historicalDataArray.length) * 100
+
+            
+            console.log("---------------VENTO--------------------------------")
+            console.log("FRACO", resultventoFraco)
+            console.log("MODERADO", resultventoModerado)
+            console.log("FORTE", resultventoForte)
+            console.log("INTENSO", resultventoIntenso)
+            console.log("---------------VENTO--------------------------------")
+
+
+            //CHUVA
+
+            let chuvaFraca = []
+            let chuvaModerada = []
+            let chuvaForte = []
+            let chuvaIntenso = []
+
+            Object.values(historicalData.data['PRECTOTCORR']).forEach((data) => {
+
+                historicalDataArray.push(data)
+
+                if (data < 10 && data > 0.2 ) {
+                    chuvaFraca.push(data)
+                }
+
+                if (data > 10.1 && data < 30) {
+                    chuvaModerada.push(data)
+                }
+                
+                if (data > 30.1 && data < 60 ) {
+                    chuvaForte.push(data)
+                }
+
+                if (data > 60) {
+                    chuvaIntenso.push(data)
+                }
+            })
+
+            
+            let resultchuvaFraca = (chuvaFraca.length / historicalDataArray.length) * 100
+            let resultchuvaModerada = (chuvamoderada.length / historicalDataArray.length) * 100
+            let resultchuvaForte = (chuvaForte.length / historicalDataArray.length) * 100
+            let resultchuvaIntenso = (chuvaIntenso.length / historicalDataArray.length) * 100
+
+
+            console.log("---------------CHUVA--------------------------------")
+            console.log("FRACO", resultventoFraco)
+            console.log("MODERADO", resultventoModerado)
+            console.log("FORTE", resultventoForte)
+            console.log("INTENSO", resultventoIntenso)
+            console.log("---------------CHUVA--------------------------------")
+            
+
+            //
+            
+            return historicalData.data
+
+
+
+
+
+
+
+            // if (!historicalData.success) {
+            //     throw new Error(historicalData.error)
+            // }
+
+            // console.log('NASA API data keys:', Object.keys(historicalData.data))
+            // console.log('Sample PRECTOTCORR data:', Object.keys(historicalData.data.PRECTOTCORR || {}).slice(0, 5))
+
+            // // CORREÇÃO: Passar dados brutos da NASA diretamente para a calculadora
+            // const prediction = await this.calculator.calculate(
+            //     historicalData.data,  // Dados brutos da NASA API
+            //     futureDate,
+            //     null  // Sem condições atuais por enquanto
+            // )
+
+            // const result = this.buildResponse(prediction, lat, lon, futureDate)
+
+            // result.futureDate = futureDate
+
+            // // Cache por 24h - dados históricos são estáveis
+            // await this.cache.set(cacheKey, result, 86400)
+
+            // return result
 
         } catch (error) {
             console.error('WeatherPredictor error:', error)

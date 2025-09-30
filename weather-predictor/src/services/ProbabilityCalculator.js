@@ -3,30 +3,30 @@ import { getDayOfYear } from '../utils/helpers.js'
 
 class NASAVennBayesCalculator {
 
-    async calculate(historicalData, targetDate, currentConditions = null) {
-        // 1. Processar dados da NASA POWER API
-        const nasaData = this.processNASAData(historicalData, targetDate)
+    // async calculate(historicalData, targetDate, currentConditions = null) {
+    //     // 1. Processar dados da NASA POWER API
+    //     const nasaData = this.processNASAData(historicalData, targetDate)
 
-        // 2. Aplicar Diagrama de Venn (Teoria de Conjuntos)
-        const vennAnalysis = this.applyVennDiagram(nasaData)
+    //     // 2. Aplicar Diagrama de Venn (Teoria de Conjuntos)
+    //     const vennAnalysis = this.applyVennDiagram(nasaData)
 
-        // 3. Aplicar Teorema de Bayes (se há condições atuais)
-        const bayesianResult = currentConditions ?
-            this.applyBayesTheorem(vennAnalysis, currentConditions, nasaData) :
-            this.getPriorProbabilities(vennAnalysis)
+    //     // 3. Aplicar Teorema de Bayes (se há condições atuais)
+    //     const bayesianResult = currentConditions ?
+    //         this.applyBayesTheorem(vennAnalysis, currentConditions, nasaData) :
+    //         this.getPriorProbabilities(vennAnalysis)
 
-        // 4. CORREÇÃO: Calcular todas as condições independentemente
-        const allProbabilities = this.calculateAllConditions(nasaData, vennAnalysis, currentConditions)
+    //     // 4. CORREÇÃO: Calcular todas as condições independentemente
+    //     const allProbabilities = this.calculateAllConditions(nasaData, vennAnalysis, currentConditions)
 
-        return {
-            probabilities: allProbabilities,
-            vennAnalysis: vennAnalysis,
-            bayesianDetails: bayesianResult,
-            confidence: this.calculateConfidence(nasaData),
-            methodology: 'nasa_venn_bayes',
-            dataSource: 'NASA_POWER'
-        }
-    }
+    //     return {
+    //         probabilities: allProbabilities,
+    //         vennAnalysis: vennAnalysis,
+    //         bayesianDetails: bayesianResult,
+    //         confidence: this.calculateConfidence(nasaData),
+    //         methodology: 'nasa_venn_bayes',
+    //         dataSource: 'NASA_POWER'
+    //     }
+    // }
 
     // NOVA FUNÇÃO: Calcular todas as condições independentemente
     calculateAllConditions(nasaData, vennAnalysis, currentConditions = null) {
