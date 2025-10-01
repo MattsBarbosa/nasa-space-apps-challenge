@@ -11,6 +11,7 @@ class WeatherController {
     }
 
     async predict(c) {
+        console.log("AQUII")
         try {
             const lat = parseFloat(c.req.query('lat'))
             const lon = parseFloat(c.req.query('lon'))
