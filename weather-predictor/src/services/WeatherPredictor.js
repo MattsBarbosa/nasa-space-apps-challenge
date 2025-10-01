@@ -10,6 +10,34 @@ class WeatherPredictor {
         this.cache = new CacheManager(env?.WEATHER_CACHE)
     }
 
+    calculateCategory(dataArray, categories) {
+            let total = dataArray.length;
+            let results = {};
+
+            // Inicializa arrays por categoria
+            for (let cat in categories) {
+                results[cat] = [];
+            }
+
+            // Distribui os valores nas categorias
+            dataArray.forEach((value) => {
+                for (let cat in categories) {
+                    let [min, max] = categories[cat];
+                    if ((min === null || value >= min) && (max === null || value <= max)) {
+                        results[cat].push(value);
+                        break;
+                    }
+                }
+            });
+
+            // Converte em percentual
+            for (let cat in results) {
+                results[cat] = (results[cat].length / total) * 100;
+            }
+
+            return results;
+    }
+
     async predict(lat, lon, futureDate) {
         try {
             const futureDateObj = new Date(futureDate)
@@ -29,137 +57,39 @@ class WeatherPredictor {
             // Buscar dados históricos NASA
             const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
 
-            function calculoDeEvento(historicalData, nomeEvento, nomeParametro, parametroFraco, parametroMedio, parametroForte, parametroIntenso) {
-                let historicalDataArray = []
+            // Vento
+            let ventoData = Object.values(historicalData.data["WS10M"]);
 
-                let fraco = []
-                let moderado = []
-                let forte = []
-                let intenso = []
+            let categoryVento = {
+                fraco: [null, 5.4],        
+                moderado: [5.5, 10.7],     
+                forte: [10.8, 17.1],         
+                intenso: [17.2, null]        
+            };
 
+            let ventoResult = this.calculateCategory(ventoData, categoryVento);
 
-                Object.values(historicalData.data[parametro]).forEach((data) => {
+            console.log("---------------VENTO--------------------------------");
+            console.log(ventoResult);
+            console.log("---------------VENTO--------------------------------");
 
-                historicalDataArray.push(data)
+            // Chuva
 
-                switch (true) {
-                case data < 5.4:
-                    fraco.push(data);
-                    break;
+            let chuvaData = Object.values(historicalData.data["PRECTOTCORR"]);
+            let categoryChuva = {
+                fraco: [0.2, 10],         
+                moderado: [10.1, 30],       
+                forte: [30.1, 60],       
+                intenso: [60.1, null]       
+            };
 
-                case data > 5.5 && data < 10.7:
-                    moderado.push(data);
-                    break;
+            let chuvaResult = this.calculateCategory(chuvaData, categoryChuva);
 
-                case data > 10.8 && data < 17.1:
-                    forte.push(data);
-                    break;
+            console.log("---------------CHUVA--------------------------------");
+            console.log(chuvaResult);
+            console.log("---------------CHUVA--------------------------------");
 
-                case data > 17.2:
-                    intenso.push(data);
-                    break;
-                }
-
-            })
-
-            }
-
-            let historicalDataArray = []
-
-            // VENTO
-            let ventoFraco = []
-            let ventoModerado = []
-            let ventoForte = []
-            let ventoIntenso = []
-
-            Object.values(historicalData.data['WS10M']).forEach((data) => {
-
-                historicalDataArray.push(data)
-
-                if (data < 5.4 ) {
-                    ventoFraco.push(data)
-                }
-
-                if (data > 5.5 && data < 10.7) {
-                    ventoModerado.push(data)
-                }
-                
-                if (data > 10.8 && data < 17.1 ) {
-                    ventoForte.push(data)
-                }
-
-                if (data > 17.2) {
-                    ventoIntenso.push(data)
-                }
-            })
-
-            
-            let resultventoFraco = (ventoFraco.length / historicalDataArray.length) * 100
-            let resultventoModerado = (ventoModerado.length / historicalDataArray.length) * 100
-            let resultventoForte = (ventoForte.length / historicalDataArray.length) * 100
-            let resultventoIntenso = (ventoIntenso.length / historicalDataArray.length) * 100
-
-            
-            console.log("---------------VENTO--------------------------------")
-            console.log("FRACO", resultventoFraco)
-            console.log("MODERADO", resultventoModerado)
-            console.log("FORTE", resultventoForte)
-            console.log("INTENSO", resultventoIntenso)
-            console.log("---------------VENTO--------------------------------")
-
-
-            //CHUVA
-
-            let chuvaFraca = []
-            let chuvaModerada = []
-            let chuvaForte = []
-            let chuvaIntenso = []
-
-            Object.values(historicalData.data['PRECTOTCORR']).forEach((data) => {
-
-                historicalDataArray.push(data)
-
-                if (data < 10 && data > 0.2 ) {
-                    chuvaFraca.push(data)
-                }
-
-                if (data > 10.1 && data < 30) {
-                    chuvaModerada.push(data)
-                }
-                
-                if (data > 30.1 && data < 60 ) {
-                    chuvaForte.push(data)
-                }
-
-                if (data > 60) {
-                    chuvaIntenso.push(data)
-                }
-            })
-
-            
-            let resultchuvaFraca = (chuvaFraca.length / historicalDataArray.length) * 100
-            let resultchuvaModerada = (chuvamoderada.length / historicalDataArray.length) * 100
-            let resultchuvaForte = (chuvaForte.length / historicalDataArray.length) * 100
-            let resultchuvaIntenso = (chuvaIntenso.length / historicalDataArray.length) * 100
-
-
-            console.log("---------------CHUVA--------------------------------")
-            console.log("FRACO", resultventoFraco)
-            console.log("MODERADO", resultventoModerado)
-            console.log("FORTE", resultventoForte)
-            console.log("INTENSO", resultventoIntenso)
-            console.log("---------------CHUVA--------------------------------")
-            
-
-            //
-            
             return historicalData.data
-
-
-
-
-
-
 
             // if (!historicalData.success) {
             //     throw new Error(historicalData.error)

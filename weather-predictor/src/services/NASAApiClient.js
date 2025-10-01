@@ -17,7 +17,7 @@ class NASAApiClient {
 
       // Parâmetros corrigidos - remover SNOW que causa 422 em algumas regiões
       const validParameters = [
-        // 'PRECTOTCORR',  // Precipitação total corrigida
+        'PRECTOTCORR',  // Precipitação total corrigida
         // 'T2M_MAX',      // Temperatura máxima 2m
         // 'T2M_MIN',      // Temperatura mínima 2m
         // 'RH2M',         // Umidade relativa 2m
