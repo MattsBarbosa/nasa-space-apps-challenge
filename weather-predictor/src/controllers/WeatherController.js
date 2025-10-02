@@ -7,11 +7,9 @@ class WeatherController {
         this.health = this.health.bind(this)
         this.home = this.home.bind(this)
         this.debug = this.debug.bind(this)
-        this.clearCache = this.clearCache.bind(this)
     }
 
     async predict(c) {
-        console.log("AQUII")
         try {
             const lat = parseFloat(c.req.query('lat'))
             const lon = parseFloat(c.req.query('lon'))
@@ -66,7 +64,6 @@ class WeatherController {
                 coordinates: { lat, lon },
                 nasa_api: nasaTest,
                 environment: {
-                    kv_storage: c.env?.WEATHER_CACHE ? 'available' : 'unavailable',
                     worker_version: '2.1-historical-focus',
                     focus: 'NASA historical data only'
                 }
@@ -97,7 +94,6 @@ class WeatherController {
                         status: nasaTest.healthy ? 'connected' : 'failed',
                         message: nasaTest.message
                     },
-                    cache: c.env?.WEATHER_CACHE ? 'available' : 'unavailable'
                 },
                 focus: 'Historical patterns from NASA data only'
             })
@@ -107,24 +103,6 @@ class WeatherController {
                 status: 'unhealthy',
                 error: error.message,
                 timestamp: new Date().toISOString()
-            }, 500)
-        }
-    }
-
-    async clearCache(c) {
-        try {
-            const predictor = new WeatherPredictor(c.env)
-            const result = await predictor.cache.clearCache()
-
-            return c.json({
-                success: result,
-                message: result ? 'Cache limpo com sucesso' : 'Erro ao limpar cache',
-                timestamp: new Date().toISOString()
-            })
-        } catch (error) {
-            return c.json({
-                success: false,
-                error: error.message
             }, 500)
         }
     }
@@ -142,7 +120,6 @@ class WeatherController {
         <li><code>GET /predict?lat={lat}&lon={lon}&date={YYYY-MM-DD}</code> - Previsão baseada em histórico</li>
         <li><code>GET /health</code> - Status da API NASA</li>
         <li><code>GET /debug</code> - Debug da integração NASA</li>
-        <li><code>DELETE /cache</code> - Limpar cache</li>
       </ul>
 
       <h2>Casos de Uso Ideais:</h2>

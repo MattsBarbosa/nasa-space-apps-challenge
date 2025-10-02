@@ -13,156 +13,75 @@
 
 /* Reset CSS básico */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
+html,
+body {
+    height: 100%;
 }
 
 body {
-  line-height: 1;
-  font-family: sans-serif;
-  background-color: #fff;
-  color: #000;
+    line-height: 1;
+    font-family: sans-serif;
+    background-color: #fff;
+    color: #000;
 }
 
-ul, ol {
-  list-style: none;
+ul,
+ol {
+    list-style: none;
 }
 
 a {
-  text-decoration: none;
-  color: inherit;
+    text-decoration: none;
+    color: inherit;
 }
 
 img {
-  max-width: 100%;
-  display: block;
+    max-width: 100%;
+    display: block;
 }
 
-button, input, select, textarea {
-  font: inherit;
-  border: none;
-  background: none;
-  outline: none;
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    border: none;
+    background: none;
+    outline: none;
 }
 
 
 /* ===== APP COMPONENT ===== */
 .app {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1e3a8a, #1e40af, #3730a3);
+    min-height: 100dvh;
     position: relative;
     overflow: hidden;
 }
 
-.app__decorations {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.app__decoration {
-    position: absolute;
-    color: rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-}
-
-.app__decoration--cloud-top {
-    top: 5rem;
-    left: 2.5rem;
-    font-size: 8rem;
-    animation: cloudDrift 10s ease-in-out infinite;
-}
-
-.app__decoration--weather-top {
-    top: 10rem;
-    right: 5rem;
-    font-size: 6rem;
-    animation: float 6s ease-in-out infinite;
-}
-
-.app__decoration--sun-bottom {
-    bottom: 5rem;
-    left: 5rem;
-    font-size: 7rem;
-    animation: sunRays 4s ease-in-out infinite;
-}
-
-.app__decoration--star-bottom {
-    bottom: 10rem;
-    right: 2.5rem;
-    font-size: 5rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-.app__container {
-    max-width: 112rem;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
+.app__container {}
 
 /* ===== HEADER ===== */
 .app__header {
     position: relative;
-    z-index: 10;
-}
-
-.app__header .app__container {
-    padding: 2rem 1rem;
-}
-
-.app__header-card {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.8), rgba(147, 51, 234, 0.8));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-    animation: slideUp 0.6s ease-out;
-}
-
-.app__header-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.app__header-icon {
-    font-size: 3.125rem;
-}
-
-.app__header-icon-svg {
-    width: 3rem;
-    height: 3rem;
-    color: white;
-    animation: float 3s ease-in-out infinite;
-}
-
-.app__header-info {
-    flex: 1;
+    z-index: 50;
+    display: none;
 }
 
 .app__title {
     font-size: 2.5rem;
     font-weight: 100;
-    color: white;
+    color: #151515;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
 }
 
 .app__description {
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
     font-size: 1.125rem;
     font-weight: 300;
     line-height: 1.6;
@@ -172,11 +91,7 @@ button, input, select, textarea {
     display: block;
     font-size: 0.875rem;
     margin-top: 0.25rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.app__header-stats {
-    display: none;
+    color: #272727;
 }
 
 .app__stat-card {
@@ -194,21 +109,20 @@ button, input, select, textarea {
 }
 
 .app__stat-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    color: #272727;
 }
 
 .app__stat-value {
     font-size: 0.875rem;
     font-weight: 600;
-    color: white;
+    color: #151515;
 }
 
 /* ===== MAIN CONTENT ===== */
 .app__main {
     position: relative;
     z-index: 10;
-    padding-bottom: 2rem;
 }
 
 .app__section {
@@ -306,7 +220,7 @@ button, input, select, textarea {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(147, 51, 234, 0.8));
     border-radius: 3rem;
     padding: 4rem 2rem;
-    color: white;
+    color: #151515;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -325,7 +239,7 @@ button, input, select, textarea {
 }
 
 .app__empty-state-icon {
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
     animation: float 3s ease-in-out infinite;
     margin: 0 auto;
 }
@@ -346,13 +260,13 @@ button, input, select, textarea {
 .app__empty-state-title {
     font-size: 1.5rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     margin-bottom: 1rem;
     letter-spacing: 0.05em;
 }
 
 .app__empty-state-description {
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     font-size: 1.125rem;
     line-height: 1.6;
     margin-bottom: 2rem;
@@ -387,13 +301,13 @@ button, input, select, textarea {
 .app__feature-title {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
     margin-bottom: 0.25rem;
 }
 
 .app__feature-desc {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .app__status-card {
@@ -409,7 +323,7 @@ button, input, select, textarea {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
 }
 
 .app__status-dot {
@@ -429,7 +343,7 @@ button, input, select, textarea {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(79, 70, 229, 0.8));
     border-radius: 3rem;
     padding: 3rem 2rem;
-    color: white;
+    color: #151515;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -453,7 +367,7 @@ button, input, select, textarea {
     width: 4rem;
     height: 4rem;
     border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid white;
+    border-top: 4px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -465,19 +379,19 @@ button, input, select, textarea {
     transform: translate(-50%, -50%);
     width: 1.5rem;
     height: 1.5rem;
-    color: white;
+    color: #151515;
     animation: pulse 2s infinite;
 }
 
 .app__loading-title {
     font-size: 1.25rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     margin-bottom: 0.5rem;
 }
 
 .app__loading-description {
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     font-size: 0.875rem;
 }
 
@@ -491,7 +405,7 @@ button, input, select, textarea {
 .app__loading-dot {
     width: 0.5rem;
     height: 0.5rem;
-    background: rgba(255, 255, 255, 0.6);
+    background: #272727;
     border-radius: 50%;
     animation: bounce 1.4s infinite ease-in-out;
 }
@@ -510,6 +424,7 @@ button, input, select, textarea {
     z-index: 10;
     margin-top: 4rem;
     padding-bottom: 2rem;
+    display: none;
 }
 
 .app__footer-card {
@@ -526,7 +441,7 @@ button, input, select, textarea {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     font-size: 0.875rem;
 }
 
@@ -544,10 +459,6 @@ button, input, select, textarea {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (min-width: 1024px) {
-    .app__header-stats {
-        display: block;
-    }
-
     .app__features-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -560,12 +471,6 @@ button, input, select, textarea {
 
     .app__description {
         font-size: 1rem;
-    }
-
-    .app__header-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.5rem;
     }
 
     .app__empty-state {
@@ -581,55 +486,42 @@ button, input, select, textarea {
     }
 }
 
-@media (max-width: 640px) {
-    .app__container {
-        padding: 0 0.5rem;
-    }
-
-    .app__header-card,
-    .app__empty-state,
-    .app__loading-state {
-        border-radius: 2rem;
-        padding: 1.5rem;
-    }
-
-    .app__title {
-        font-size: 1.5rem;
-    }
-
-    .app__decoration {
-        display: none;
-    }
-}
-
 /* ===== WEATHER VISUALIZATION ===== */
 .weather-visualization {
-    max-width: 96rem;
-    margin: 0 auto;
-    animation: fadeInUp 0.6s ease-out;
+    position: absolute;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.07);
+    /* backdrop-filter: blur(10px); */
+    padding: 0 14px;
+    z-index: 11;
 }
 
 .weather-visualization__container {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(147, 51, 234, 0.9));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 14px;
     position: relative;
-    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+    backdrop-filter: blur(10px);
+    background: rgb(255 255 255 / 40%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
 }
 
 .weather-visualization__header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 14px;
 }
 
 .weather-visualization__title {
-    font-size: 3rem;
+    font-size: 24px;
     font-weight: 100;
-    color: white;
+    color: #151515;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
 }
@@ -638,9 +530,9 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.875rem;
+    gap: 8px;
+    color: #3a3a3a;
+    font-size: 12px;
 }
 
 .weather-visualization__subtitle-icon {
@@ -678,11 +570,11 @@ button, input, select, textarea {
 .weather-visualization__location-text {
     font-size: 1.125rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
 }
 
 .weather-visualization__date {
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
     font-size: 0.875rem;
 }
 
@@ -765,7 +657,7 @@ button, input, select, textarea {
 }
 
 .weather-visualization__alert-status {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: #fef3c7;
 }
 
@@ -773,16 +665,11 @@ button, input, select, textarea {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 14px;
 }
 
 .weather-visualization__chart-container {
     text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .weather-visualization__circular-progress {
@@ -815,14 +702,14 @@ button, input, select, textarea {
 }
 
 .weather-visualization__circular-progress-value {
-    font-size: 3rem;
+    font-size: 40px;
     font-weight: 100;
-    color: white;
+    color: #151515;
 }
 
 .weather-visualization__circular-progress-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    color: #151515;
     letter-spacing: 0.05em;
 }
 
@@ -833,14 +720,14 @@ button, input, select, textarea {
 .weather-visualization__chart-label {
     font-size: 1.25rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     margin-bottom: 0.5rem;
 }
 
 .weather-visualization__chart-condition {
     font-size: 1.5rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
     text-transform: capitalize;
     margin-bottom: 1rem;
 }
@@ -855,9 +742,9 @@ button, input, select, textarea {
 .weather-visualization__chart-confidence {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.7);
+    gap: 8px;
+    font-size: 14px;
+    color: #151515;
 }
 
 .weather-visualization__chart-confidence-icon {
@@ -950,14 +837,14 @@ button, input, select, textarea {
 
 .weather-visualization__condition-card-title {
     font-weight: 500;
-    color: white;
+    color: #151515;
     font-size: 0.875rem;
     margin-bottom: 0.25rem;
 }
 
 .weather-visualization__condition-card-subtitle {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    color: #272727;
 }
 
 .weather-visualization__condition-card-emoji {
@@ -986,14 +873,14 @@ button, input, select, textarea {
 .weather-visualization__condition-card-progress-labels {
     display: flex;
     justify-content: space-between;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
     margin-top: 0.5rem;
 }
 
 .weather-visualization__condition-card-progress-value {
     font-weight: 500;
-    color: white;
+    color: #151515;
 }
 
 .weather-visualization__condition-card-badge {
@@ -1001,8 +888,8 @@ button, input, select, textarea {
     top: -0.5rem;
     right: -0.5rem;
     background: linear-gradient(90deg, #fbbf24, #f59e0b);
-    color: white;
-    font-size: 0.75rem;
+    color: #151515;
+    font-size: 12px;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-weight: 500;
@@ -1015,16 +902,15 @@ button, input, select, textarea {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     text-align: center;
-    padding: 3rem;
-    border-radius: 1.5rem;
+    padding: 14px;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: fadeIn 0.5s ease-in;
 }
 
 .weather-visualization__empty-state-icon {
     width: 4rem;
     height: 4rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgb(254 228 70);
     margin: 0 auto 1rem;
     animation: pulse 3s infinite;
 }
@@ -1032,13 +918,14 @@ button, input, select, textarea {
 .weather-visualization__empty-state-title {
     font-size: 1.25rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     margin-bottom: 0.75rem;
 }
 
 .weather-visualization__empty-state-description {
-    color: rgba(255, 255, 255, 0.7);
+    color: #151515;
     line-height: 1.6;
+    font-size: 12px;
 }
 
 .weather-visualization__ranking {
@@ -1053,7 +940,7 @@ button, input, select, textarea {
 
 .weather-visualization__ranking-title {
     font-weight: 500;
-    color: white;
+    color: #151515;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
@@ -1063,7 +950,7 @@ button, input, select, textarea {
 .weather-visualization__ranking-icon {
     width: 1.25rem;
     height: 1.25rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
 }
 
 .weather-visualization__ranking-list {
@@ -1095,7 +982,7 @@ button, input, select, textarea {
     height: 2rem;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
-    color: white;
+    color: #151515;
     font-weight: 500;
     font-size: 0.875rem;
 }
@@ -1118,7 +1005,7 @@ button, input, select, textarea {
 .weather-visualization__ranking-label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
 }
 
 .weather-visualization__ranking-progress {
@@ -1139,7 +1026,7 @@ button, input, select, textarea {
 .weather-visualization__ranking-value {
     width: 4rem;
     text-align: right;
-    color: white;
+    color: #151515;
     font-weight: 500;
 }
 
@@ -1181,7 +1068,7 @@ button, input, select, textarea {
 .weather-visualization__debug-summary {
     cursor: pointer;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
+    color: #3a3a3a;
     transition: color 0.3s ease;
     display: flex;
     align-items: center;
@@ -1189,7 +1076,7 @@ button, input, select, textarea {
 }
 
 .weather-visualization__debug-summary:hover {
-    color: white;
+    color: #151515;
 }
 
 .weather-visualization__debug-indicator {
@@ -1209,8 +1096,8 @@ button, input, select, textarea {
 }
 
 .weather-visualization__debug-code {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    color: #272727;
     overflow: auto;
     max-height: 10rem;
     white-space: pre-wrap;
@@ -1238,93 +1125,97 @@ button, input, select, textarea {
 
 /* ===== MAP SELECTOR ===== */
 .map-selector {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(59, 130, 246, 0.9));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: red;
     position: relative;
     overflow: hidden;
-    animation: slideUp 0.6s ease-out;
 }
 
 .map-selector__header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    padding: 14px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 14px;
+    background: rgb(255 255 255 / 20%);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    z-index: 10;
+    left: calc(50% - 152px);
+    top: 14px;
+    width: 304px;
 }
 
 .map-selector__header-icon {
-    font-size: 2.5rem;
+    overflow: hidden;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    display: none;
 }
 
-.map-selector__header-icon-svg {
-    width: 2rem;
-    height: 2rem;
-    color: white;
-    animation: float 3s ease-in-out infinite;
+.map-selector__header-icon svg {
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+    color: #166393;
 }
 
-.map-selector__header-content {
-    flex: 1;
+.map-selector__header-icon img {
+    display: none;
+}
+
+.map-selector__header-form {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-selector__header-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    color: #FFF;
+    background-color: #166393;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.map-selector__header-btn:hover {
+    background-color: #12557f;
 }
 
 .map-selector__title {
     font-size: 1.5rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
 }
 
 .map-selector__subtitle {
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     font-size: 0.875rem;
 }
 
 .map-selector__form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
 }
 
-.map-selector__section {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 1.5rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-}
+.map-selector__section {}
 
 .map-selector__section:hover {
     background: rgba(255, 255, 255, 0.15);
-}
-
-.map-selector__section-header {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.map-selector__section-title {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.map-selector__section-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    animation: pulse 3s infinite;
 }
 
 .map-selector__section-dot {
@@ -1346,7 +1237,7 @@ button, input, select, textarea {
     padding: 0.5rem 1rem;
     font-weight: 500;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
+    color: #151515;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -1369,7 +1260,7 @@ button, input, select, textarea {
     width: 1rem;
     height: 1rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top: 2px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -1380,16 +1271,21 @@ button, input, select, textarea {
 }
 
 .map-selector__map-container {
-    position: relative;
-    height: 28rem;
-    border-radius: 1.5rem;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: 100dvh;
 }
 
 .map-selector__map {
-    z-index: 10;
+    z-index: 8;
+}
+
+.map-selector__preset {
+    position: absolute;
+}
+
+.map-selector__manual {
+    position: absolute;
 }
 
 .map-selector__popup {
@@ -1410,31 +1306,36 @@ button, input, select, textarea {
 
 .map-selector__overlay {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: rgba(255, 255, 255, 0.1);
+    bottom: 14px;
+    left: 14px;
     backdrop-filter: blur(10px);
-    border-radius: 1rem;
-    padding: 1rem;
+    border-radius: 16px;
+    padding: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    z-index: 20;
-    max-width: 18rem;
-    animation: fadeIn 0.5s ease-in;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 20%);
+    z-index: 9;
+    max-width: 290px;
+    transition: all 0.3s ease;
+}
+
+.map-selector__overlay:hover {
+    transform: scale(1.02);
 }
 
 .map-selector__overlay-content {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 6px;
 }
 
 .map-selector__overlay-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: #93c5fd;
+    width: 18px;
+    height: 18px;
+    color: #272727;
     animation: pulse 3s infinite;
     flex-shrink: 0;
-    margin-top: 0.125rem;
+    display: none;
 }
 
 .map-selector__overlay-info {
@@ -1443,22 +1344,22 @@ button, input, select, textarea {
 
 .map-selector__overlay-name {
     font-weight: 500;
-    color: white;
-    font-size: 0.875rem;
-    margin-bottom: 0.25rem;
+    color: #272727;
+    font-size: 14px;
+    margin-bottom: 8px;
     word-wrap: break-word;
 }
 
 .map-selector__overlay-coords {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 0.5rem;
+    font-size: 12px;
+    color: #272727;
+    margin-bottom: 8px;
 }
 
 .map-selector__overlay-status {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
 }
 
 .map-selector__overlay-dot {
@@ -1470,33 +1371,23 @@ button, input, select, textarea {
 }
 
 .map-selector__overlay-status span {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .map-selector__hint {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    z-index: 20;
-    animation: fadeIn 0.5s ease-in;
-}
-
-.map-selector__hint-content {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.8);
+    gap: 6px;
+    font-size: 12px;
+    color: #272727;
+    margin-top: 10px;
+    line-height: 1.2;
 }
 
 .map-selector__hint-icon {
-    width: 1rem;
-    height: 1rem;
+    width: 16px;
+    height: 16px;
 }
 
 .map-selector__presets {
@@ -1514,7 +1405,7 @@ button, input, select, textarea {
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
-    color: white;
+    color: #151515;
     animation: fadeInUp 0.6s ease-out;
 }
 
@@ -1541,19 +1432,19 @@ button, input, select, textarea {
 .map-selector__preset-name {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
     margin-bottom: 0.25rem;
     word-wrap: break-word;
 }
 
 .map-selector__preset-climate {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
     margin-bottom: 0.25rem;
 }
 
 .map-selector__preset-coords {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
 }
 
@@ -1562,7 +1453,7 @@ button, input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: rgba(255, 255, 255, 0.9);
+    color: #3a3a3a;
     font-weight: 500;
     background: none;
     border: none;
@@ -1571,7 +1462,7 @@ button, input, select, textarea {
 }
 
 .map-selector__toggle:hover {
-    color: white;
+    color: #151515;
 }
 
 .map-selector__toggle-content {
@@ -1613,40 +1504,44 @@ button, input, select, textarea {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
+}
+
+.map-selector__label {
+    width: 100%;
 }
 
 .map-selector__input {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background-color: rgb(255 255 255 / 40%);
+    border-radius: 12px;
     width: 100%;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    height: 38px;
+    font-size: 14px;
+    padding: 0 14px;
+    color: #151515;
+    transition: all .3s ease;
 }
 
 .map-selector__input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #151515;
 }
 
 .map-selector__input:focus {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: #89c081;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
 .map-selector__coords-hint {
     margin-top: 0.75rem;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .map-selector__date-hint {
     margin-top: 0.5rem;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .map-selector__submit-btn {
@@ -1657,7 +1552,7 @@ button, input, select, textarea {
     font-weight: 500;
     font-size: 1.125rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
+    color: #151515;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -1701,7 +1596,7 @@ button, input, select, textarea {
     width: 1.5rem;
     height: 1.5rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top: 2px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -1736,42 +1631,37 @@ button, input, select, textarea {
 .map-selector__feature-title {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
 }
 
 .map-selector__feature-desc {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.map-selector__decoration {
-    position: absolute;
-    font-size: 4rem;
-    color: rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-}
-
-.map-selector__decoration--map {
-    top: 1rem;
-    right: 1rem;
-    animation: float 6s ease-in-out infinite;
-}
-
-.map-selector__decoration--pin {
-    bottom: 1rem;
-    left: 1rem;
-    animation: cloudDrift 10s ease-in-out infinite;
+    font-size: 12px;
+    color: #272727;
 }
 
 /* ===== LOCATION SELECTOR ===== */
 .location-selector {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(147, 51, 234, 0.9));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: absolute;
+    margin: 0 auto;
+    top: 150px;
+    left: calc(50% - 500px);
+    z-index: 11;
+    backdrop-filter: blur(10px);
+    background: rgb(255 255 255 / 20%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 1024px;
+}
+
+.location-selector__container {
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 14px;
+    color: #151515;
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
     position: relative;
     overflow: hidden;
     animation: slideUp 0.6s ease-out;
@@ -1791,7 +1681,7 @@ button, input, select, textarea {
 .location-selector__header-icon-svg {
     width: 2rem;
     height: 2rem;
-    color: white;
+    color: #151515;
     animation: float 3s ease-in-out infinite;
 }
 
@@ -1802,13 +1692,13 @@ button, input, select, textarea {
 .location-selector__title {
     font-size: 1.5rem;
     font-weight: 300;
-    color: white;
+    color: #151515;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
 }
 
 .location-selector__subtitle {
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     font-size: 0.875rem;
 }
 
@@ -1821,8 +1711,8 @@ button, input, select, textarea {
 .location-selector__section {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-radius: 1.5rem;
-    padding: 1.5rem;
+    border-radius: 16px;
+    padding: 14px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
 }
@@ -1832,7 +1722,7 @@ button, input, select, textarea {
 }
 
 .location-selector__section-title {
-    color: rgba(255, 255, 255, 0.9);
+    color: #3a3a3a;
     font-weight: 500;
     margin-bottom: 1rem;
     display: flex;
@@ -1857,19 +1747,19 @@ button, input, select, textarea {
 .location-selector__presets {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.75rem;
+    gap: 14px;
 }
 
 .location-selector__preset {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     text-align: center;
-    border-radius: 1rem;
-    padding: 1rem;
+    border-radius: 16px;
+    padding: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
-    color: white;
+    color: #151515;
     animation: fadeInUp 0.6s ease-out;
 }
 
@@ -1891,13 +1781,13 @@ button, input, select, textarea {
 .location-selector__preset-name {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #151515;
     margin-bottom: 0.25rem;
 }
 
 .location-selector__preset-coords {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .location-selector__coords-grid {
@@ -1916,7 +1806,7 @@ button, input, select, textarea {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
+    color: #272727;
 }
 
 .location-selector__input {
@@ -1925,13 +1815,13 @@ button, input, select, textarea {
     border-radius: 0.75rem;
     padding: 0.75rem 1rem;
     width: 100%;
-    color: white;
+    color: #151515;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s ease;
 }
 
 .location-selector__input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #272727;
 }
 
 .location-selector__input:focus {
@@ -1942,8 +1832,8 @@ button, input, select, textarea {
 
 .location-selector__date-hint {
     margin-top: 0.5rem;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #272727;
 }
 
 .location-selector__submit-btn {
@@ -1954,7 +1844,7 @@ button, input, select, textarea {
     font-weight: 500;
     font-size: 1.125rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
+    color: #151515;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -1998,7 +1888,7 @@ button, input, select, textarea {
     width: 1.5rem;
     height: 1.5rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top: 2px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -2040,7 +1930,7 @@ button, input, select, textarea {
 .location-selector__info-text {
     flex: 1;
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #272727;
     line-height: 1.6;
 }
 
@@ -2049,11 +1939,11 @@ button, input, select, textarea {
 }
 
 .location-selector__info-tip strong {
-    color: rgba(255, 255, 255, 0.9);
+    color: #3a3a3a;
 }
 
 .location-selector__info-coords strong {
-    color: rgba(255, 255, 255, 0.9);
+    color: #3a3a3a;
 }
 
 .location-selector__decoration {
@@ -2078,26 +1968,25 @@ button, input, select, textarea {
 /* ===== API STATUS ===== */
 .api-status {
     position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 50;
-    animation: slideInRight 0.5s ease-out;
+    top: 14px;
+    right: 14px;
+    z-index: 13;
+
 }
 
 .api-status__main {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(16px);
-    border-radius: 1rem;
-    padding: 1rem;
+    background: rgba(255, 255, 255, 40%);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .api-status__main:hover {
-    transform: scale(1.05);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 60%);
 }
 
 .api-status--healthy .api-status__main {
@@ -2126,7 +2015,7 @@ button, input, select, textarea {
     width: 1.25rem;
     height: 1.25rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top: 2px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -2138,7 +2027,7 @@ button, input, select, textarea {
     transform: translate(-50%, -50%);
     width: 0.75rem;
     height: 0.75rem;
-    color: white;
+    color: #151515;
     animation: pulse 2s infinite;
 }
 
@@ -2169,7 +2058,7 @@ button, input, select, textarea {
 .api-status__main-text {
     font-size: 0.875rem;
     font-weight: 500;
-    color: white;
+    color: #272727;
 }
 
 .api-status__main-status {
@@ -2188,8 +2077,8 @@ button, input, select, textarea {
 }
 
 .api-status__main-status-text {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    color: #272727;
 }
 
 .api-status__toggle-icon {
@@ -2203,17 +2092,17 @@ button, input, select, textarea {
 .api-status__toggle-svg {
     width: 1rem;
     height: 1rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #151515;
 }
 
 .api-status__panel {
     margin-top: 0.75rem;
-    background: linear-gradient(135deg, rgba(71, 85, 105, 0.8), rgba(51, 65, 85, 0.8));
-    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 20%);
+    backdrop-filter: blur(10px);
     border-radius: 1rem;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     animation: slideUp 0.3s ease-out;
 }
 
@@ -2226,15 +2115,8 @@ button, input, select, textarea {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.api-status__panel-header-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: #60a5fa;
-    animation: float 3s ease-in-out infinite;
-}
-
 .api-status__panel-header-text {
-    color: white;
+    color: #272727;
     font-weight: 500;
     font-size: 0.875rem;
 }
@@ -2242,17 +2124,18 @@ button, input, select, textarea {
 .api-status__components {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 8px;
 }
 
 .api-status__component {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 8px;
+    background-color: rgb(255 255 255 / 40%);
     transition: all 0.3s ease;
+    gap: 8px;
 }
 
 .api-status__component:hover {
@@ -2262,7 +2145,7 @@ button, input, select, textarea {
 .api-status__component-info {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
 }
 
 .api-status__component-icon {
@@ -2302,14 +2185,14 @@ button, input, select, textarea {
 }
 
 .api-status__component-name {
-    color: white;
+    color: #272727;
     font-size: 0.875rem;
     font-weight: 500;
 }
 
 .api-status__component-desc {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 10px;
+    color: #3d3d3d;
 }
 
 .api-status__component-status {
@@ -2334,7 +2217,7 @@ button, input, select, textarea {
 }
 
 .api-status__component-status-text {
-    font-size: 0.75rem;
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -2352,14 +2235,14 @@ button, input, select, textarea {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 8px;
 }
 
 .api-status__metric {
     text-align: center;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 8px;
+    background-color: rgb(255 255 255 / 40%);
 }
 
 .api-status__metric-header {
@@ -2381,12 +2264,12 @@ button, input, select, textarea {
 }
 
 .api-status__metric-label {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    color: #151515;
 }
 
 .api-status__metric-value {
-    color: white;
+    color: #272727;
     font-weight: 500;
     font-size: 0.875rem;
 }
@@ -2408,13 +2291,13 @@ button, input, select, textarea {
 .api-status__timestamp-dot {
     width: 0.25rem;
     height: 0.25rem;
-    background: rgba(255, 255, 255, 0.4);
+    background: #3d3d3d;
     border-radius: 50%;
 }
 
 .api-status__timestamp-text {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 10px;
+    color: #3d3d3d;
 }
 
 .api-status__refresh-btn {
@@ -2422,17 +2305,17 @@ button, input, select, textarea {
     margin-top: 0.75rem;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-radius: 0.75rem;
-    padding: 0.5rem;
+    border-radius: 8px;
+    padding: 8px;
     font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
+    border: 1px solid rgba(255, 255, 255, 40%);
+    color: #272727;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .api-status__refresh-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 60%);
     transform: translateY(-1px);
 }
 
@@ -2452,7 +2335,7 @@ button, input, select, textarea {
     width: 1rem;
     height: 1rem;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
+    border-top: 2px solid #151515;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -2478,60 +2361,54 @@ button, input, select, textarea {
     animation: ping 1s infinite;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 640px) {
-
-    .weather-visualization__container,
-    .map-selector,
-    .location-selector {
-        padding: 1.5rem;
-        border-radius: 2rem;
+@media (max-width: 768px) {
+    .api-status__main-info {
+        display: none;
     }
 
-    .weather-visualization__title {
-        font-size: 2rem;
-    }
-
-    .weather-visualization__circular-progress-emoji {
-        font-size: 2rem;
-    }
-
-    .weather-visualization__conditions-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .map-selector__presets,
-    .location-selector__presets {
-        grid-template-columns: 1fr;
-    }
-
-    .map-selector__map-container {
-        height: 20rem;
-    }
-
-    .api-status {
-        top: 1rem;
-        right: 1rem;
+    :has(.api-status__panel) .api-status__main-info {
+        display: flex;
+        flex-direction: column;
     }
 }
 
-@media (max-width: 768px) {
-    .weather-visualization__ranking-item {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
-    }
+/* ===== ZOOM ===== */
+.leaflet-touch .leaflet-bar a {
+    font-size: 18px !important;
+}
 
-    .weather-visualization__ranking-progress {
-        width: 100%;
-    }
+.leaflet-touch .leaflet-bar a:last-child {
+    line-height: 24px;
+}
 
-    .map-selector__section-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+.leaflet-left .leaflet-control {
+    margin-left: 24px !important;
+}
 
-    .api-status__metrics {
-        grid-template-columns: 1fr;
-    }
+.leaflet-top .leaflet-control {
+    margin-top: 24px !important;
+}
+
+.leaflet-touch .leaflet-bar {
+    border: none !important;
+}
+
+.leaflet-touch .leaflet-bar a {
+    border: 1px solid rgba(232, 232, 232, 0.6) !important;
+    background-color: rgb(255 255 255 / 60%);
+    backdrop-filter: blur(5px);
+}
+
+.leaflet-touch .leaflet-bar a:last-child {
+    border-bottom-left-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+.leaflet-touch .leaflet-bar a:first-child {
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+}
+
+.leaflet-bottom {
+    display: none;
 }

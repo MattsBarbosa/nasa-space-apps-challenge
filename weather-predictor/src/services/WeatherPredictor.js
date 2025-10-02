@@ -1,41 +1,48 @@
 import NASAApiClient from './NASAApiClient.js'
-import NASAVennBayesCalculator from './ProbabilityCalculator.js'
-import CacheManager from '../utils/cache.js'
-import { getDayOfYear } from '../utils/helpers.js'
 
 class WeatherPredictor {
     constructor(env) {
         this.nasaClient = new NASAApiClient()
-        this.calculator = new NASAVennBayesCalculator()
-        this.cache = new CacheManager(env?.WEATHER_CACHE)
     }
 
-    calculateCategory(dataArray, categories) {
-            let total = dataArray.length;
-            let results = {};
+    calculateCategory(dataObj, categories) {
+        let results = {};
 
-            // Inicializa arrays por categoria
+        // Inicializa arrays por categoria
+        for (let cat in categories) {
+            results[cat] = [];
+        }
+
+        // Distribui os valores nas categorias
+        for (let [date, value] of Object.entries(dataObj)) {
+            // Ignora valores inválidos (ex: -999)
+            if (value === -999 || value === null) continue;
+
             for (let cat in categories) {
-                results[cat] = [];
-            }
-
-            // Distribui os valores nas categorias
-            dataArray.forEach((value) => {
-                for (let cat in categories) {
-                    let [min, max] = categories[cat];
-                    if ((min === null || value >= min) && (max === null || value <= max)) {
-                        results[cat].push(value);
-                        break;
-                    }
+                let [min, max] = categories[cat];
+                if ((min === null || value >= min) && (max === null || value <= max)) {
+                    results[cat].push({ date, value });
+                    break;
                 }
-            });
-
-            // Converte em percentual
-            for (let cat in results) {
-                results[cat] = (results[cat].length / total) * 100;
             }
+        }
 
-            return results;
+        // Converte em percentual se quiser
+        const totalValid = Object.values(dataObj).filter(v => v !== -999 && v !== null).length;
+        for (let cat in results) {
+            results[cat] = {
+                percentage: (results[cat].length / totalValid) * 100,
+                entries: results[cat] // aqui estão os objetos {date, value}
+            }
+        }
+
+        return results;
+    }
+
+    processEvent(historicalData, key, categories, name) {
+        let data = historicalData.data[key];
+        let result = this.calculateCategory(data, categories);
+        return { evento: name, data: result }
     }
 
     async predict(lat, lon, futureDate) {
@@ -45,74 +52,69 @@ class WeatherPredictor {
                 throw new Error('Data inválida fornecida')
             }
 
-            const cacheKey = this.cache.generateKey(lat, lon, futureDate)
-            console.log('Cache key:', cacheKey)
-
-            const cached = await this.cache.get(cacheKey)
-
-            if (cached && cached.futureDate === futureDate) {
-                return { ...cached, fromCache: true }
+            const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
+            
+            const categories = {
+                Wind: {
+                    key: "WS10M",
+                    ranges: {
+                        none: [null, 0.1],
+                        weak: [0.2, 5.4],
+                        moderate: [5.5, 10.7],
+                        strong: [10.8, 17.1],
+                        intense: [17.2, null]
+                    }
+                },
+                Preciptation: {
+                    key: "PRECTOTCORR",
+                    ranges: {
+                        none: [null, 0.1],
+                        weak: [0.2, 10],
+                        moderate: [10.1, 30],
+                        strong: [30.1, 60],
+                        intense: [60.1, null]
+                    }
+                },
+                Cloud: {
+                    key: "CLOUD_AMT",
+                    ranges: {
+                        none: [null, 9.9],
+                        weak: [10, 30],
+                        moderate: [30.1, 70],
+                        strong: [70.1, null]
+                    }
+                },
+                Radiation: {
+                    key: "ALLSKY_SFC_SW_DWN",
+                    ranges: {
+                        none: [null, 1],        
+                        weak: [1.1, 3],           
+                        moderate: [3.1, 5],       
+                        strong: [5.1, 7],         
+                        intense: [7.1, null] 
+                    }
+                },
+                Temperature: {
+                    key: "T2M",
+                    ranges: {
+                        extreme_cold: [null, 0],  
+                        cold: [0.1, 10],          
+                        mild: [10.1, 20],         
+                        warm: [20.1, 30],         
+                        hot: [30.1, 40],         
+                        extreme_hot: [40.1, null] 
+                    }
+                }
             }
 
-            // Buscar dados históricos NASA
-            const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
+            const results = Object.entries(categories).map(([name, config]) => {
+                return this.processEvent(historicalData, config.key, config.ranges, name);
+            });
 
-            // Vento
-            let ventoData = Object.values(historicalData.data["WS10M"]);
 
-            let categoryVento = {
-                fraco: [null, 5.4],        
-                moderado: [5.5, 10.7],     
-                forte: [10.8, 17.1],         
-                intenso: [17.2, null]        
-            };
+            //SEPARETA VALUES YEAR AND MONTH
 
-            let ventoResult = this.calculateCategory(ventoData, categoryVento);
-
-            console.log("---------------VENTO--------------------------------");
-            console.log(ventoResult);
-            console.log("---------------VENTO--------------------------------");
-
-            // Chuva
-
-            let chuvaData = Object.values(historicalData.data["PRECTOTCORR"]);
-            let categoryChuva = {
-                fraco: [0.2, 10],         
-                moderado: [10.1, 30],       
-                forte: [30.1, 60],       
-                intenso: [60.1, null]       
-            };
-
-            let chuvaResult = this.calculateCategory(chuvaData, categoryChuva);
-
-            console.log("---------------CHUVA--------------------------------");
-            console.log(chuvaResult);
-            console.log("---------------CHUVA--------------------------------");
-
-            return historicalData.data
-
-            // if (!historicalData.success) {
-            //     throw new Error(historicalData.error)
-            // }
-
-            // console.log('NASA API data keys:', Object.keys(historicalData.data))
-            // console.log('Sample PRECTOTCORR data:', Object.keys(historicalData.data.PRECTOTCORR || {}).slice(0, 5))
-
-            // // CORREÇÃO: Passar dados brutos da NASA diretamente para a calculadora
-            // const prediction = await this.calculator.calculate(
-            //     historicalData.data,  // Dados brutos da NASA API
-            //     futureDate,
-            //     null  // Sem condições atuais por enquanto
-            // )
-
-            // const result = this.buildResponse(prediction, lat, lon, futureDate)
-
-            // result.futureDate = futureDate
-
-            // // Cache por 24h - dados históricos são estáveis
-            // await this.cache.set(cacheKey, result, 86400)
-
-            // return result
+            return 1
 
         } catch (error) {
             console.error('WeatherPredictor error:', error)
@@ -123,148 +125,7 @@ class WeatherPredictor {
         }
     }
 
-    buildResponse(prediction, lat, lon, futureDate) {
-        // Encontrar condição dominante
-        const [dominantCondition, dominantProbability] = this.findDominantCondition(prediction.probabilities)
-
-        const response = {
-            location: {
-                lat: parseFloat(lat),
-                lon: parseFloat(lon)
-            },
-            futureDate: futureDate,
-            prediction: {
-                dominantCondition: dominantCondition,
-                probability: Math.round(dominantProbability * 100),
-                confidence: Math.round(prediction.confidence * 100),
-
-                // Sanitizar probabilidades
-                conditions: this.sanitizeConditions(prediction.probabilities),
-
-                // Dados específicos do Venn + Bayes
-                vennAnalysis: {
-                    methodology: "Diagrama de Venn aplicado aos dados NASA",
-                    intersections: {
-                        dryAndLowHumidity: Math.round(prediction.vennAnalysis.intersections.dryAndLowHumidity * 100),
-                        rainAndHighHumidity: Math.round(prediction.vennAnalysis.intersections.rainAndHighHumidity * 100),
-                        idealSunny: Math.round(prediction.vennAnalysis.intersections.idealSunny * 100),
-                        stormConditions: Math.round(prediction.vennAnalysis.intersections.stormConditions * 100)
-                    },
-                    basicProbabilities: {
-                        dry: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.dry * 100),
-                        lightRain: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.lightRain * 100),
-                        heavyRain: Math.round(prediction.vennAnalysis.basicProbabilities.precipitation.heavyRain * 100)
-                    }
-                },
-
-                bayesianAnalysis: prediction.bayesianDetails ? {
-                    methodology: "Teorema de Bayes aplicado (sem condições atuais)",
-                    priors: this.roundObject(prediction.bayesianDetails.priors),
-                    method: prediction.bayesianDetails.method
-                } : {
-                    methodology: "Apenas probabilidades a priori (sem dados atuais para Bayes)"
-                },
-
-                recommendations: this.generateRecommendations(dominantCondition)
-            },
-
-            metadata: {
-                daysAnalyzed: prediction.vennAnalysis.totalDays,
-                dataSource: 'NASA_POWER',
-                method: prediction.methodology,
-                version: '2.1-venn-bayes',
-                generatedAt: new Date().toISOString(),
-                targetDayOfYear: getDayOfYear(new Date(futureDate)),
-                targetYear: new Date(futureDate).getFullYear(),
-                mathematicalApproach: [
-                    "Teoria de Conjuntos (Diagrama de Venn)",
-                    "Teorema de Bayes (quando aplicável)"
-                ]
-            }
-        }
-
-        console.log('Built response - dominant:', dominantCondition, 'probability:', Math.round(dominantProbability * 100))
-        return response
-    }
-
-    findDominantCondition(probabilities) {
-        const validEntries = Object.entries(probabilities)
-            .map(([key, value]) => {
-                const cleanValue = (typeof value === 'number' && !isNaN(value)) ? Math.max(0, value) : 0
-                return [key, cleanValue]
-            })
-            .filter(([key, value]) => value > 0)
-            .sort(([, a], [, b]) => b - a)
-
-        if (validEntries.length === 0) {
-            console.warn('Nenhuma condição com probabilidade válida, usando cloudy como padrão')
-            return ['cloudy', 0.3]
-        }
-
-        const [condition, probability] = validEntries[0]
-
-        if (probability < 0.05) {
-            return [condition, 0.2]
-        }
-
-        return [condition, probability]
-    }
-
-    sanitizeConditions(probabilities) {
-        const sanitized = {}
-
-        Object.entries(probabilities).forEach(([key, value]) => {
-            const cleanValue = (typeof value === 'number' && !isNaN(value)) ? Math.max(0, value) : 0
-            sanitized[key] = Math.round(cleanValue * 100)
-        })
-
-        return sanitized
-    }
-
-    roundObject(obj) {
-        const rounded = {}
-        Object.entries(obj).forEach(([key, value]) => {
-            rounded[key] = Math.round(value * 100)
-        })
-        return rounded
-    }
-
-    generateRecommendations(condition) {
-        const baseRecommendations = {
-            sunny: [
-                "Análise de Venn sugere condições favoráveis para secar roupas",
-                "Intersecção histórica de dias secos + baixa umidade"
-            ],
-            rainy: [
-                "Diagrama de Venn indica alta probabilidade de chuva",
-                "Prepare-se baseado em intersecções históricas chuva + alta umidade"
-            ],
-            cloudy: [
-                "Padrão de Venn sugere condições nubladas",
-                "Intersecção histórica indica possível chuva leve"
-            ],
-            stormy: [
-                "Análise de Venn indica condições de tempestade",
-                "Intersecção tripla: chuva forte + alta umidade detectada"
-            ],
-            windy: [
-                "Padrões históricos sugerem condições ventosas",
-                "Baseado em análise frequentista dos dados NASA"
-            ],
-            snowy: [
-                "Intersecção chuva + frio sugere possibilidade de neve",
-                "Análise de Venn aplicada a condições de baixa temperatura"
-            ]
-        }
-
-        const recommendations = baseRecommendations[condition] || [
-            "Condições normais esperadas baseado na análise matemática"
-        ]
-
-        recommendations.push("Análise baseada em Teoria de Conjuntos aplicada aos dados históricos da NASA")
-
-        return recommendations
-    }
 }
 
 export default WeatherPredictor
+
