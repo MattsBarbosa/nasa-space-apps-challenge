@@ -53,104 +53,20 @@ button, input, select, textarea {
 
 /* ===== APP COMPONENT ===== */
 .app {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1e3a8a, #1e40af, #3730a3);
+    min-height: 100dvh;
     position: relative;
     overflow: hidden;
 }
 
-.app__decorations {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.app__decoration {
-    position: absolute;
-    color: rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-}
-
-.app__decoration--cloud-top {
-    top: 5rem;
-    left: 2.5rem;
-    font-size: 8rem;
-    animation: cloudDrift 10s ease-in-out infinite;
-}
-
-.app__decoration--weather-top {
-    top: 10rem;
-    right: 5rem;
-    font-size: 6rem;
-    animation: float 6s ease-in-out infinite;
-}
-
-.app__decoration--sun-bottom {
-    bottom: 5rem;
-    left: 5rem;
-    font-size: 7rem;
-    animation: sunRays 4s ease-in-out infinite;
-}
-
-.app__decoration--star-bottom {
-    bottom: 10rem;
-    right: 2.5rem;
-    font-size: 5rem;
-    animation: float 3s ease-in-out infinite;
-}
-
 .app__container {
-    max-width: 112rem;
-    margin: 0 auto;
-    padding: 0 1rem;
+
 }
 
 /* ===== HEADER ===== */
 .app__header {
     position: relative;
-    z-index: 10;
-}
-
-.app__header .app__container {
-    padding: 2rem 1rem;
-}
-
-.app__header-card {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.8), rgba(147, 51, 234, 0.8));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    overflow: hidden;
-    animation: slideUp 0.6s ease-out;
-}
-
-.app__header-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.app__header-icon {
-    font-size: 3.125rem;
-}
-
-.app__header-icon-svg {
-    width: 3rem;
-    height: 3rem;
-    color: white;
-    animation: float 3s ease-in-out infinite;
-}
-
-.app__header-info {
-    flex: 1;
+    z-index: 50;
+    display: none;
 }
 
 .app__title {
@@ -173,10 +89,6 @@ button, input, select, textarea {
     font-size: 0.875rem;
     margin-top: 0.25rem;
     color: rgba(255, 255, 255, 0.6);
-}
-
-.app__header-stats {
-    display: none;
 }
 
 .app__stat-card {
@@ -208,7 +120,6 @@ button, input, select, textarea {
 .app__main {
     position: relative;
     z-index: 10;
-    padding-bottom: 2rem;
 }
 
 .app__section {
@@ -510,6 +421,7 @@ button, input, select, textarea {
     z-index: 10;
     margin-top: 4rem;
     padding-bottom: 2rem;
+    display: none;
 }
 
 .app__footer-card {
@@ -544,10 +456,6 @@ button, input, select, textarea {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (min-width: 1024px) {
-    .app__header-stats {
-        display: block;
-    }
-
     .app__features-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -562,12 +470,6 @@ button, input, select, textarea {
         font-size: 1rem;
     }
 
-    .app__header-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.5rem;
-    }
-
     .app__empty-state {
         padding: 3rem 1.5rem;
     }
@@ -578,27 +480,6 @@ button, input, select, textarea {
 
     .app__decoration {
         font-size: 4rem !important;
-    }
-}
-
-@media (max-width: 640px) {
-    .app__container {
-        padding: 0 0.5rem;
-    }
-
-    .app__header-card,
-    .app__empty-state,
-    .app__loading-state {
-        border-radius: 2rem;
-        padding: 1.5rem;
-    }
-
-    .app__title {
-        font-size: 1.5rem;
-    }
-
-    .app__decoration {
-        display: none;
     }
 }
 
@@ -1238,38 +1119,73 @@ button, input, select, textarea {
 
 /* ===== MAP SELECTOR ===== */
 .map-selector {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.9), rgba(59, 130, 246, 0.9));
-    border-radius: 3rem;
-    padding: 2rem;
-    color: white;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: red;
     position: relative;
     overflow: hidden;
-    animation: slideUp 0.6s ease-out;
 }
 
 .map-selector__header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
+    padding: 14px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    gap: 14px;
+    background: rgb(255 255 255 / 20%);
+    backdrop-filter: blur(10px);
+    position: fixed;
+    z-index: 10;
+    left: calc(50% - 152px);
+    top: 14px;
+    width: 304px;
 }
 
 .map-selector__header-icon {
-    font-size: 2.5rem;
+    overflow: hidden;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    display: none;
 }
 
-.map-selector__header-icon-svg {
-    width: 2rem;
-    height: 2rem;
-    color: white;
-    animation: float 3s ease-in-out infinite;
+.map-selector__header-icon svg {
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1);
+    color: #166393;
 }
 
-.map-selector__header-content {
-    flex: 1;
+.map-selector__header-icon img {
+    display: none;
+}
+
+.map-selector__header-form {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-selector__header-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    color: #FFF;
+    background-color: #166393;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.map-selector__header-btn:hover {
+    background-color: #12557f;
 }
 
 .map-selector__title {
@@ -1288,43 +1204,13 @@ button, input, select, textarea {
 .map-selector__form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
 }
 
 .map-selector__section {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 1.5rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
 }
 
 .map-selector__section:hover {
     background: rgba(255, 255, 255, 0.15);
-}
-
-.map-selector__section-header {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.map-selector__section-title {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.map-selector__section-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    animation: pulse 3s infinite;
 }
 
 .map-selector__section-dot {
@@ -1380,16 +1266,21 @@ button, input, select, textarea {
 }
 
 .map-selector__map-container {
-    position: relative;
-    height: 28rem;
-    border-radius: 1.5rem;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: 100dvh;
 }
 
 .map-selector__map {
-    z-index: 10;
+    z-index: 8;
+}
+
+.map-selector__preset {
+    position: absolute;
+}
+
+.map-selector__manual {
+    position: absolute;
 }
 
 .map-selector__popup {
@@ -1410,31 +1301,35 @@ button, input, select, textarea {
 
 .map-selector__overlay {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: rgba(255, 255, 255, 0.1);
+    bottom: 14px;
+    left: 14px;
+    background-color: rgb(255 96 0 / 60%);
     backdrop-filter: blur(10px);
-    border-radius: 1rem;
-    padding: 1rem;
+    border-radius: 16px;
+    padding: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    z-index: 20;
-    max-width: 18rem;
-    animation: fadeIn 0.5s ease-in;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 9;
+    max-width: 290px;
+    transition: all 0.3s ease;
+}
+
+.map-selector__overlay:hover {
+    transform: scale(1.02);
 }
 
 .map-selector__overlay-content {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 6px;
 }
 
 .map-selector__overlay-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: #93c5fd;
+    width: 18px;
+    height: 18px;
+    color: #FFF;
     animation: pulse 3s infinite;
     flex-shrink: 0;
-    margin-top: 0.125rem;
 }
 
 .map-selector__overlay-info {
@@ -1443,22 +1338,22 @@ button, input, select, textarea {
 
 .map-selector__overlay-name {
     font-weight: 500;
-    color: white;
-    font-size: 0.875rem;
-    margin-bottom: 0.25rem;
+    color: #FFF;
+    font-size: 14px;
+    margin-bottom: 8px;
     word-wrap: break-word;
 }
 
 .map-selector__overlay-coords {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 0.5rem;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
 }
 
 .map-selector__overlay-status {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 6px;
 }
 
 .map-selector__overlay-dot {
@@ -1470,33 +1365,23 @@ button, input, select, textarea {
 }
 
 .map-selector__overlay-status span {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.map-selector__hint {
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    z-index: 20;
-    animation: fadeIn 0.5s ease-in;
-}
-
-.map-selector__hint-content {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
+    font-size: 12px;
     color: rgba(255, 255, 255, 0.8);
 }
 
+.map-selector__hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 10px;
+    line-height: 1.2;
+}
+
 .map-selector__hint-icon {
-    width: 1rem;
-    height: 1rem;
+    width: 16px;
+    height: 16px;
 }
 
 .map-selector__presets {
@@ -1616,25 +1501,29 @@ button, input, select, textarea {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.map-selector__input {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
+.map-selector__label {
     width: 100%;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+}
+
+.map-selector__input {
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background-color: rgb(255 255 255 / 40%);
+    border-radius: 12px;
+    width: 100%;
+    height: 38px;
+    font-size: 14px;
+    padding: 0 14px;
+    color: #151515;
+    transition: all .3s ease;
 }
 
 .map-selector__input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #151515;
 }
 
 .map-selector__input:focus {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: #89c081;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
 .map-selector__coords-hint {
@@ -1742,25 +1631,6 @@ button, input, select, textarea {
 .map-selector__feature-desc {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.6);
-}
-
-.map-selector__decoration {
-    position: absolute;
-    font-size: 4rem;
-    color: rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-}
-
-.map-selector__decoration--map {
-    top: 1rem;
-    right: 1rem;
-    animation: float 6s ease-in-out infinite;
-}
-
-.map-selector__decoration--pin {
-    bottom: 1rem;
-    left: 1rem;
-    animation: cloudDrift 10s ease-in-out infinite;
 }
 
 /* ===== LOCATION SELECTOR ===== */
@@ -2078,26 +1948,24 @@ button, input, select, textarea {
 /* ===== API STATUS ===== */
 .api-status {
     position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 50;
-    animation: slideInRight 0.5s ease-out;
+    top: 14px;
+    right: 14px;
+    z-index: 11;
 }
 
 .api-status__main {
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(16px);
-    border-radius: 1rem;
-    padding: 1rem;
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .api-status__main:hover {
-    transform: scale(1.05);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    transform: scale(1.02);
 }
 
 .api-status--healthy .api-status__main {
@@ -2478,60 +2346,5 @@ button, input, select, textarea {
     animation: ping 1s infinite;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 640px) {
-
-    .weather-visualization__container,
-    .map-selector,
-    .location-selector {
-        padding: 1.5rem;
-        border-radius: 2rem;
-    }
-
-    .weather-visualization__title {
-        font-size: 2rem;
-    }
-
-    .weather-visualization__circular-progress-emoji {
-        font-size: 2rem;
-    }
-
-    .weather-visualization__conditions-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .map-selector__presets,
-    .location-selector__presets {
-        grid-template-columns: 1fr;
-    }
-
-    .map-selector__map-container {
-        height: 20rem;
-    }
-
-    .api-status {
-        top: 1rem;
-        right: 1rem;
-    }
-}
-
 @media (max-width: 768px) {
-    .weather-visualization__ranking-item {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
-    }
-
-    .weather-visualization__ranking-progress {
-        width: 100%;
-    }
-
-    .map-selector__section-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .api-status__metrics {
-        grid-template-columns: 1fr;
-    }
 }

@@ -182,41 +182,43 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
             {/* Header */}
             <div className="map-selector__header">
                 <div className="map-selector__header-icon">
-                    <Satellite className="map-selector__header-icon-svg" />
+                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="1"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-satellite"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414z" /><path d="M6 10l-3 3l3 3l3 -3" /><path d="M10 6l3 -3l3 3l-3 3" /><path d="M12 12l1.5 1.5" /><path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5" /><path d="M15 21a6 6 0 0 0 6 -6" /></svg>
+                    <img src="https://placehold.co/60x60" alt="" />
                 </div>
-                <div className="map-selector__header-content">
-                    <h2 className="map-selector__title">
-                        Seletor de Localização
-                    </h2>
-                    <p className="map-selector__subtitle">
-                        Clique no mapa ou escolha um local para análise meteorológica
-                    </p>
-                </div>
+                <form action="" class="map-selector__header-form">
+                    <label htmlFor="search-l" className="map-selector__label">
+                        <input type="text" name="search-l" id="" placeholder="Search for Location…" className="map-selector__input" />
+                    </label>
+                    <label htmlFor="search-d" className="map-selector__label">
+                        <input
+                            type="date"
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            max={new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                            className="map-selector__input"
+                            autoComplete="off"
+                            required
+                        />
+                    </label>
+                </form>
+                <button
+                    type="button"
+                    onClick={getCurrentLocation}
+                    disabled={isLoadingLocation}
+                    className="map-selector__header-btn"
+                >
+                    {isLoadingLocation ? (
+                        <div className="map-selector__location-btn-spinner" />
+                    ) : (
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="1.5"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-send"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>
+                    )}
+                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="map-selector__form">
                 {/* Controles do Mapa */}
                 <div className="map-selector__section">
-                    <div className="map-selector__section-header">
-                        <h3 className="map-selector__section-title">
-                            <Globe className="map-selector__section-icon" />
-                            <span>Mapa Interativo</span>
-                        </h3>
-
-                        <button
-                            type="button"
-                            onClick={getCurrentLocation}
-                            disabled={isLoadingLocation}
-                            className="map-selector__location-btn"
-                        >
-                            {isLoadingLocation ? (
-                                <div className="map-selector__location-btn-spinner" />
-                            ) : (
-                                <Navigation className="map-selector__location-btn-icon" />
-                            )}
-                            <span>Minha Localização</span>
-                        </button>
-                    </div>
 
                     {/* Mapa */}
                     <div className="map-selector__map-container">
@@ -266,22 +268,18 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
                                         <div className="map-selector__overlay-dot"></div>
                                         <span>Local selecionado</span>
                                     </div>
+                                    <div className="map-selector__hint">
+                                        <span>Clique no mapa<br></br> para selecionar</span>
+                                        <Crosshair className="map-selector__hint-icon" />
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Dica de uso */}
-                        <div className="map-selector__hint">
-                            <div className="map-selector__hint-content">
-                                <Crosshair className="map-selector__hint-icon" />
-                                <span>Clique para selecionar</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Locais Pré-definidos */}
-                <div className="map-selector__section">
+                <div className="map-selector__preset">
                     <label className="map-selector__section-title">
                         <div className="map-selector__section-dot"></div>
                         <span>Locais Populares</span>
@@ -317,7 +315,7 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
                 </div>
 
                 {/* Coordenadas Manuais */}
-                <div className="map-selector__section">
+                <div className="map-selector__manual">
                     <button
                         type="button"
                         onClick={() => setShowManualCoords(!showManualCoords)}
@@ -380,83 +378,7 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
                         </div>
                     )}
                 </div>
-
-                {/* Data */}
-                <div className="map-selector__section">
-                    <label className="map-selector__section-title">
-                        <Calendar className="map-selector__section-icon" />
-                        <span>Data para Previsão</span>
-                    </label>
-
-                    <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        max={new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                        className="map-selector__input"
-                        required
-                    />
-
-                    <div className="map-selector__date-hint">
-                        📅 Selecione uma data entre hoje e 2 anos no futuro
-                    </div>
-                </div>
-
-                {/* Botão Submit */}
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="map-selector__submit-btn"
-                >
-                    <div className="map-selector__submit-btn-shine"></div>
-
-                    <div className="map-selector__submit-btn-content">
-                        {loading ? (
-                            <>
-                                <div className="map-selector__submit-btn-spinner"></div>
-                                <span>Analisando dados meteorológicos...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Search className="map-selector__submit-btn-icon" />
-                                <span>Obter Previsão Meteorológica</span>
-                            </>
-                        )}
-                    </div>
-                </button>
-
-                {/* Informações adicionais */}
-                <div className="map-selector__section">
-                    <div className="map-selector__features">
-                        <div className="map-selector__feature">
-                            <div className="map-selector__feature-emoji">🎯</div>
-                            <div className="map-selector__feature-title">Precisão GPS</div>
-                            <div className="map-selector__feature-desc">Localização exata</div>
-                        </div>
-
-                        <div className="map-selector__feature">
-                            <div className="map-selector__feature-emoji">🛰️</div>
-                            <div className="map-selector__feature-title">Dados NASA</div>
-                            <div className="map-selector__feature-desc">Fonte confiável</div>
-                        </div>
-
-                        <div className="map-selector__feature">
-                            <div className="map-selector__feature-emoji">⚡</div>
-                            <div className="map-selector__feature-title">Análise Rápida</div>
-                            <div className="map-selector__feature-desc">Resultados em segundos</div>
-                        </div>
-                    </div>
-                </div>
             </form>
-
-            {/* Decoração de fundo */}
-            <div className="map-selector__decoration map-selector__decoration--map">
-                🗺️
-            </div>
-            <div className="map-selector__decoration map-selector__decoration--pin">
-                📍
-            </div>
         </div>
     );
 };
