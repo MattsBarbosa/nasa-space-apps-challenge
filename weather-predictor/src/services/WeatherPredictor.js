@@ -35,6 +35,12 @@ class WeatherPredictor {
         return results;
     }
 
+    processEvento(historicalData, key, categories, name) {
+        let data = Object.values(historicalData.data[key]);
+        let result = this.calculateCategory(data, categories);
+        return { evento: name, data: result}
+    }
+
     async predict(lat, lon, futureDate) {
         try {
             const futureDateObj = new Date(futureDate)
@@ -44,44 +50,32 @@ class WeatherPredictor {
 
             const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
 
-            // Vento
-            let ventoData = Object.values(historicalData.data["WS10M"]);
-
-            let categoryVento = {
-                fraco: [null, 5.4],
-                moderado: [5.5, 10.7],
-                forte: [10.8, 17.1],
-                intenso: [17.2, null]
-            };
-
-            let ventoResult = this.calculateCategory(ventoData, categoryVento);
-
-            console.log("---------------VENTO--------------------------------");
-            console.log(ventoResult);
-            console.log("---------------VENTO--------------------------------");
-
-            // Chuva
-
-            let chuvaData = Object.values(historicalData.data["PRECTOTCORR"]);
-            let categoryChuva = {
-                fraco: [0.2, 10],
-                moderado: [10.1, 30],
-                forte: [30.1, 60],
-                intenso: [60.1, null]
-            };
-
-            let chuvaResult = this.calculateCategory(chuvaData, categoryChuva);
-
-            console.log("---------------CHUVA--------------------------------");
-            console.log(chuvaResult);
-            console.log("---------------CHUVA--------------------------------");
-
-            return {
-                vento: ventoResult,
-                chuva: chuvaResult
+            const categories = {
+                Vento: {
+                    key: "WS10M",
+                    ranges: {
+                        fraco: [null, 5.4],
+                        moderado: [5.5, 10.7],
+                        forte: [10.8, 17.1],
+                        intenso: [17.2, null]
+                    }
+                },
+                Chuva: {
+                    key: "PRECTOTCORR",
+                    ranges: {
+                        fraco: [0.2, 10],
+                        moderado: [10.1, 30],
+                        forte: [30.1, 60],
+                        intenso: [60.1, null]
+                    }
+                }
             }
 
-            // return result
+            const results = Object.entries(categories).map(([name, config]) => {
+                return this.processEvento(historicalData, config.key, config.ranges, name);
+            });
+
+            return results
 
         } catch (error) {
             console.error('WeatherPredictor error:', error)
