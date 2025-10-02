@@ -218,7 +218,7 @@ const WeatherVisualization = ({ weatherData }) => {
                     </div>
                 )}
 
-                <LowConfidenceAlert confidence={confidence} />
+                {/* <LowConfidenceAlert confidence={confidence} /> */}
 
                 {/* Insights temporais */}
                 {temporalInsight && (
@@ -289,7 +289,7 @@ const WeatherVisualization = ({ weatherData }) => {
                 )}
 
                 {/* Comparação de Condições */}
-                <div className="weather-visualization__ranking">
+                {/* <div className="weather-visualization__ranking">
                     <h3 className="weather-visualization__ranking-title">
                         <TrendingUp className="weather-visualization__ranking-icon" />
                         <span>Ranking de Probabilidades</span>
@@ -337,7 +337,7 @@ const WeatherVisualization = ({ weatherData }) => {
                                 );
                             })}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Limitações da API */}
                 {limitations.length > 0 && (
@@ -360,7 +360,7 @@ const WeatherVisualization = ({ weatherData }) => {
                 )}
 
                 {/* Debug info */}
-                <div className="weather-visualization__debug">
+                {/* <div className="weather-visualization__debug">
                     <details className="weather-visualization__debug-details">
                         <summary className="weather-visualization__debug-summary">
                             <span>🔧 Dados Técnicos (Debug)</span>
@@ -378,15 +378,8 @@ const WeatherVisualization = ({ weatherData }) => {
                             </pre>
                         </div>
                     </details>
-                </div>
+                </div> */}
 
-                {/* Decoração de fundo */}
-                <div className="weather-visualization__decoration weather-visualization__decoration--chart">
-                    📊
-                </div>
-                <div className="weather-visualization__decoration weather-visualization__decoration--thermometer">
-                    🌡️
-                </div>
             </div>
         </div>
     );

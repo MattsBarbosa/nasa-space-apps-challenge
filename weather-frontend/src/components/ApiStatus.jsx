@@ -68,10 +68,6 @@ const ApiStatus = () => {
                             </div>
                         )}
                     </div>
-
-                    <div className={`api-status__toggle-icon ${isExpanded ? 'api-status__toggle-icon--rotated' : ''}`}>
-                        <Activity className="api-status__toggle-svg" />
-                    </div>
                 </div>
             </div>
 
@@ -81,7 +77,6 @@ const ApiStatus = () => {
 
                     {/* Header do painel expandido */}
                     <div className="api-status__panel-header">
-                        <Satellite className="api-status__panel-header-icon" />
                         <span className="api-status__panel-header-text">Status dos Componentes</span>
                     </div>
 

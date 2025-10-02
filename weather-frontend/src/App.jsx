@@ -36,6 +36,7 @@ function App() {
     return (
         <div className="app">
             <ApiStatus />
+            {/* <WeatherVisualization /> */}
 
             {/* Header */}
             <header className="app__header">
