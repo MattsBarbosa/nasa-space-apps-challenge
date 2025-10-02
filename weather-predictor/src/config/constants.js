@@ -2,28 +2,28 @@ export const NASA_POWER_BASE_URL = "https://power.larc.nasa.gov/api/temporal/dai
 
 // Parâmetros corrigidos - removidos os que causam 422
 export const NASA_PARAMETERS = [
-  'PRECTOTCORR',  // Precipitação total corrigida
-  'T2M_MAX',      // Temperatura máxima 2m
-  'T2M_MIN',      // Temperatura mínima 2m
-  'RH2M',         // Umidade relativa 2m
-  'WS10M',        // Velocidade vento 10m
-  'PS'            // Pressão superfície
-  // Removido 'SNOW' - causa 422 em muitas regiões
+    'PRECTOTCORR',  // Precipitação total corrigida
+    // 'T2M_MAX',      // Temperatura máxima 2m
+    // 'T2M_MIN',      // Temperatura mínima 2m
+    // 'RH2M',         // Umidade relativa 2m
+    'WS10M',        // Velocidade vento 10m
+    // 'PS'            // Pressão superfície
+    // Removido 'SNOW' - não disponível para todas as regiões
 ]
 
 export const WEATHER_THRESHOLDS = {
-  rain: { light: 0.1, moderate: 2.5, heavy: 10.0 },
-  temperature: { cold: 10, mild: 20, warm: 30 },
-  humidity: { low: 40, moderate: 70, high: 85 },
-  wind: { calm: 2, moderate: 6, strong: 10 },
-  snow: { trace: 0.1, light: 1.0, moderate: 5.0 } // Mantido para cálculos
+    rain: { light: 0.1, moderate: 2.5, heavy: 10.0 },
+    temperature: { cold: 10, mild: 20, warm: 30 },
+    humidity: { low: 40, moderate: 70, high: 85 },
+    wind: { calm: 2, moderate: 6, strong: 10 },
+    snow: { trace: 0.1, light: 1.0, moderate: 5.0 } // Mantido para cálculos
 }
 
 export const API_LIMITS = {
-  MAX_YEARS_BACK: 15,        // Reduzido para melhor performance
-  MAX_FUTURE_YEARS: 2,
-  NASA_LAT_MIN: -60,         // Limites da NASA POWER
-  NASA_LAT_MAX: 60,
-  NASA_LON_MIN: -180,
-  NASA_LON_MAX: 180
+    MAX_YEARS_BACK: 15,        // Reduzido para melhor performance
+    MAX_FUTURE_YEARS: 2,
+    NASA_LAT_MIN: -60,         // Limites da NASA POWER
+    NASA_LAT_MAX: 60,
+    NASA_LON_MIN: -180,
+    NASA_LON_MAX: 180
 }

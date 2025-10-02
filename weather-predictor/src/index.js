@@ -16,7 +16,6 @@ app.get('/', weatherController.home)
 app.get('/predict', weatherController.predict)
 app.get('/health', weatherController.health)
 app.get('/debug', weatherController.debug)
-app.delete('/cache', weatherController.clearCache)
 app.options('*', (c) => c.text('', 204))
 
 export default app
