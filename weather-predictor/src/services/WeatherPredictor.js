@@ -10,12 +10,10 @@ class WeatherPredictor {
         let total = dataArray.length;
         let results = {};
 
-        // Inicializa arrays por categoria
         for (let cat in categories) {
             results[cat] = [];
         }
 
-        // Distribui os valores nas categorias
         dataArray.forEach((value) => {
             for (let cat in categories) {
                 let [min, max] = categories[cat];
@@ -26,19 +24,17 @@ class WeatherPredictor {
             }
         });
 
-        // Converte em percentual
         for (let cat in results) {
-            console.log((results[cat].length / total) * 100)
             results[cat] = (results[cat].length / total) * 100;
         }
 
         return results;
     }
 
-    processEvento(historicalData, key, categories, name) {
+    processEvent(historicalData, key, categories, name) {
         let data = Object.values(historicalData.data[key]);
         let result = this.calculateCategory(data, categories);
-        return { evento: name, data: result}
+        return { event: name, data: result }
     }
 
     async predict(lat, lon, futureDate) {
@@ -51,7 +47,7 @@ class WeatherPredictor {
             const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
 
             const categories = {
-                Vento: {
+                Wind: {
                     key: "WS10M",
                     ranges: {
                         fraco: [null, 5.4],
@@ -60,7 +56,7 @@ class WeatherPredictor {
                         intenso: [17.2, null]
                     }
                 },
-                Chuva: {
+                Rain: {
                     key: "PRECTOTCORR",
                     ranges: {
                         fraco: [0.2, 10],
@@ -72,7 +68,7 @@ class WeatherPredictor {
             }
 
             const results = Object.entries(categories).map(([name, config]) => {
-                return this.processEvento(historicalData, config.key, config.ranges, name);
+                return this.processEvent(historicalData, config.key, config.ranges, name);
             });
 
             return results

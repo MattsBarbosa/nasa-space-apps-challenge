@@ -56,8 +56,6 @@ class NASAApiClient {
 
             const data = await response.json()
 
-            console.log('NASA API Response Keys:', Object.keys(data)) // Debug
-
             if (!data.properties?.parameter) {
                 console.error('Invalid NASA API Response Structure:', data)
                 throw new Error('Estrutura de resposta inválida da NASA API')
