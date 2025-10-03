@@ -1,4 +1,5 @@
 import WeatherPredictor from '../services/WeatherPredictor.js'
+import WeatherAgentService from '../services/WeatherAgentService.js';
 import { validateCoordinates, validateDate } from '../utils/validators.js'
 
 class WeatherController {
@@ -7,6 +8,7 @@ class WeatherController {
         this.health = this.health.bind(this)
         this.home = this.home.bind(this)
         this.debug = this.debug.bind(this)
+        this.chat = this.chat.bind(this)
     }
 
     async predict(c) {
@@ -106,6 +108,47 @@ class WeatherController {
             }, 500)
         }
     }
+
+    async chat(c) {
+        try {
+            let body;
+            try {
+                body = await c.req.json();
+            } catch (jsonError) {
+                return c.json({
+                    error: 'JSON inválido',
+                    message: 'O corpo da requisição deve ser um JSON válido',
+                    example: { message: "Vou para Londres em 6 de fevereiro de 2027" }
+                }, 400);
+            }
+
+            const { message } = body;
+
+            if (!message || typeof message !== 'string' || message.trim() === '') {
+                return c.json({
+                    error: 'Mensagem é obrigatória',
+                    example: { message: "Vou para Londres em 6 de fevereiro de 2027" }
+                }, 400);
+            }
+
+            const agentService = new WeatherAgentService(c.env);
+
+            const response = await agentService.chat(message.trim());
+
+            return c.json({
+                response,
+                timestamp: new Date().toISOString()
+            }, 200);
+
+        } catch (error) {
+            console.error('Erro no chat:', error);
+            return c.json({
+                error: 'Erro interno do servidor',
+                message: error.message
+            }, 500);
+        }
+    }
+
 
     home(c) {
         return c.html(`

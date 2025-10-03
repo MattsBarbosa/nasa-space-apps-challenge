@@ -15,7 +15,9 @@ const weatherController = new WeatherController()
 app.get('/', weatherController.home)
 app.get('/predict', weatherController.predict)
 app.get('/health', weatherController.health)
+app.post('/chat', weatherController.chat)
 app.get('/debug', weatherController.debug)
+
 app.options('*', (c) => c.text('', 204))
 
 export default app
