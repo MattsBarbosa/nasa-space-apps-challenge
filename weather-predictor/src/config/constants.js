@@ -1,14 +1,12 @@
 export const NASA_POWER_BASE_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
 
-// Parâmetros corrigidos - removidos os que causam 422
+// Parâmetros corrigidos 
 export const NASA_PARAMETERS = [
+    'T2M', // TEmperatura média
     'PRECTOTCORR',  // Precipitação total corrigida
-    // 'T2M_MAX',      // Temperatura máxima 2m
-    // 'T2M_MIN',      // Temperatura mínima 2m
-    // 'RH2M',         // Umidade relativa 2m
     'WS10M',        // Velocidade vento 10m
-    // 'PS'            // Pressão superfície
-    // Removido 'SNOW' - não disponível para todas as regiões
+    'CLOUD_AMT',   // Cobertura de nuvens
+    'ALLSKY_SFC_SW_DWN'  // Radiação solar
 ]
 
 export const WEATHER_THRESHOLDS = {

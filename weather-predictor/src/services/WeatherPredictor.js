@@ -1,48 +1,112 @@
 import NASAApiClient from './NASAApiClient.js'
-
 class WeatherPredictor {
     constructor(env) {
         this.nasaClient = new NASAApiClient()
     }
 
-    calculateCategory(dataObj, categories) {
+    calculateCategory(dataArray, categories) {
+        let total = dataArray.length
         let results = {};
 
-        // Inicializa arrays por categoria
         for (let cat in categories) {
-            results[cat] = [];
+            results[cat] = []
         }
 
-        // Distribui os valores nas categorias
-        for (let [date, value] of Object.entries(dataObj)) {
-            // Ignora valores inválidos (ex: -999)
-            if (value === -999 || value === null) continue;
-
+        dataArray.forEach((value) => {
             for (let cat in categories) {
-                let [min, max] = categories[cat];
+                let [min, max] = categories[cat]
                 if ((min === null || value >= min) && (max === null || value <= max)) {
-                    results[cat].push({ date, value });
-                    break;
+                    results[cat].push(value)
+                    break
                 }
             }
-        }
+        })
 
-        // Converte em percentual se quiser
-        const totalValid = Object.values(dataObj).filter(v => v !== -999 && v !== null).length;
         for (let cat in results) {
-            results[cat] = {
-                percentage: (results[cat].length / totalValid) * 100,
-                entries: results[cat] // aqui estão os objetos {date, value}
-            }
+            results[cat] = (results[cat].length / total) * 100
         }
 
-        return results;
+        return results
     }
 
     processEvent(historicalData, key, categories, name) {
-        let data = historicalData.data[key];
-        let result = this.calculateCategory(data, categories);
-        return { evento: name, data: result }
+        let data = Object.values(historicalData.data[key])
+        let result = this.calculateCategory(data, categories)
+        return { event: name, data: result }
+    }
+
+    processSunlight(historicalData, key) {
+        const sunData = Object.entries(historicalData.data[key]) // [[dateString, value], ...]
+
+        const currentYear = new Date().getFullYear()
+        const lastThirtyYears = Array.from({ length: 30 }, (_, i) => currentYear - i)
+
+        // Inicializa objeto com anos e meses
+        const groupedByYear = initializeYearMonthStructure(lastThirtyYears)
+
+        // Popula os dados agrupados por ano e mês
+        populateGroupedData(groupedByYear, sunData)
+
+        // Calcula média mensal de cada ano
+        const monthlyAverages = calculateMonthlyAverages(groupedByYear)
+
+        // Calcula média anual a partir das médias mensais
+        const yearlyAverages = calculateYearlyAverages(monthlyAverages)
+
+        // Calcula média geral de todos os anos
+        const overallAverage = calculateOverallAverage(yearlyAverages)
+
+        return overallAverage;
+
+        // --- Funções auxiliares ---
+
+        function initializeYearMonthStructure(years) {
+            const structure = {};
+            years.forEach(year => {
+                structure[year] = {};
+                for (let month = 1; month <= 12; month++) {
+                    structure[year][month] = [];
+                }
+            })
+            return structure;
+        }
+
+        function populateGroupedData(grouped, data) {
+            data.forEach(([dateString, value]) => {
+                const year = parseInt(dateString.slice(0, 4))
+                const month = parseInt(dateString.slice(4, 6))
+                if (grouped[year] && grouped[year][month]) {
+                    grouped[year][month].push({ date: dateString, value })
+                }
+            })
+        }
+
+        function calculateMonthlyAverages(grouped) {
+            const monthlyAvg = {};
+            for (let year in grouped) {
+                monthlyAvg[year] = {};
+                for (let month in grouped[year]) {
+                    const validValues = grouped[year][month].filter(item => item.value !== -999).map(item => item.value)
+                    const avg = validValues.length ? validValues.reduce((sum, v) => sum + v, 0) / validValues.length : 0;
+                    monthlyAvg[year][month] = avg;
+                }
+            }
+            return monthlyAvg;
+        }
+
+        function calculateYearlyAverages(monthlyAvg) {
+            const yearlyAvg = {};
+            for (let year in monthlyAvg) {
+                const months = Object.values(monthlyAvg[year])
+                yearlyAvg[year] = months.reduce((sum, v) => sum + v, 0) / months.length;
+            }
+            return yearlyAvg;
+        }
+
+        function calculateOverallAverage(yearlyAvg) {
+            const years = Object.values(yearlyAvg)
+            return years.reduce((sum, v) => sum + v, 0) / years.length;
+        }
     }
 
     async predict(lat, lon, futureDate) {
@@ -53,7 +117,7 @@ class WeatherPredictor {
             }
 
             const historicalData = await this.nasaClient.fetchHistoricalData(lat, lon)
-            
+
             const categories = {
                 Wind: {
                     key: "WS10M",
@@ -84,7 +148,7 @@ class WeatherPredictor {
                         strong: [70.1, null]
                     }
                 },
-                Radiation: {
+                SunRadiation: {
                     key: "ALLSKY_SFC_SW_DWN",
                     ranges: {
                         none: [null, 1],        
@@ -106,15 +170,19 @@ class WeatherPredictor {
                     }
                 }
             }
-
-            const results = Object.entries(categories).map(([name, config]) => {
-                return this.processEvent(historicalData, config.key, config.ranges, name);
+            
+            // Processa cada categoria
+            const categoryResults = Object.entries(categories).map(([name, config]) => {
+                return this.processEvent(historicalData, config.key, config.ranges, name)
             });
 
+            // Processa sunlight separadamente
+            const sunlightValue = this.processSunlight(historicalData, "ALLSKY_SFC_SW_DWN")
+            const sunlightResult = { event: "Sunlight", data: sunlightValue }
+            
+            const results = [...categoryResults, sunlightResult]
 
-            //SEPARETA VALUES YEAR AND MONTH
-
-            return 1
+            return results;
 
         } catch (error) {
             console.error('WeatherPredictor error:', error)
@@ -124,8 +192,6 @@ class WeatherPredictor {
             }
         }
     }
-
 }
 
 export default WeatherPredictor
-
