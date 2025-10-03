@@ -35,8 +35,8 @@ class WeatherPredictor {
         return { event: name, data: result }
     }
 
-    processSunlight(historicalData, key) {
-        const sunData = Object.entries(historicalData.data[key]) // [[dateString, value], ...]
+    processSunlight(historicalData) {
+        const sunData = Object.entries(historicalData.data["ALLSKY_SFC_SW_DWN"]) // [[dateString, value], ...]
 
         const currentYear = new Date().getFullYear()
         const lastThirtyYears = Array.from({ length: 30 }, (_, i) => currentYear - i)
@@ -56,7 +56,7 @@ class WeatherPredictor {
         // Calcula média geral de todos os anos
         const overallAverage = calculateOverallAverage(yearlyAverages)
 
-        return overallAverage;
+        return {event: "Sunlight", data: overallAverage}
 
         // --- Funções auxiliares ---
 
@@ -107,6 +107,55 @@ class WeatherPredictor {
             const years = Object.values(yearlyAvg)
             return years.reduce((sum, v) => sum + v, 0) / years.length;
         }
+    }
+
+    processSnow(historicalData) {
+        const tempMap = historicalData.data?.T2M || {}
+        const precipMap = historicalData.data?.PRECTOTCORR || {}
+
+        // datas que existem em ambos
+        const dates = Object.keys(tempMap).filter(d => d in precipMap)
+
+        const counts = { none: 0, weak: 0, moderate: 0, strong: 0 }
+        let valid = 0
+
+        for (const date of dates) {
+            const rawT = tempMap[date]
+            const rawP = precipMap[date]
+
+            const t = Number(rawT)
+            const p = Number(rawP)
+
+            // pular valores inválidos 
+            if (!Number.isFinite(t) || !Number.isFinite(p)) continue
+            if (t === -999 || p === -999) continue
+
+            valid++;
+
+            // aplicação das regras (assumindo inclusões conforme sua descrição)
+            if (p >= 0 && p <= 0.1 && t > 2) {
+                counts.none++
+            } else if (p >= 0.2 && p <= 5 && t > 0 && t < 2) {
+                counts.weak++
+            } else if (p >= 5.1 && p <= 20 && t <= 0) {
+                counts.moderate++
+            } else if (p >= 20.1 && t <= 0) {
+                counts.strong++
+            } else {
+                counts.none++;
+            }
+        }
+
+        const result = {}
+        if (valid === 0) {
+            for (const k of Object.keys(counts)) result[k] = 0
+        } else {
+            for (const k of Object.keys(counts)) {
+            result[k] = (counts[k] / valid) * 100
+            }
+        }
+
+        return { event: "Snow", data: result }
     }
 
     async predict(lat, lon, futureDate) {
@@ -177,10 +226,13 @@ class WeatherPredictor {
             });
 
             // Processa sunlight separadamente
-            const sunlightValue = this.processSunlight(historicalData, "ALLSKY_SFC_SW_DWN")
-            const sunlightResult = { event: "Sunlight", data: sunlightValue }
+            const sunlightResult = this.processSunlight(historicalData)
             
-            const results = [...categoryResults, sunlightResult]
+
+            // Processa snow separadamente
+            const snowResult = this.processSnow(historicalData)
+            
+            const results = [...categoryResults, sunlightResult, snowResult]
 
             return results;
 
