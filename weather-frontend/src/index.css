@@ -513,6 +513,31 @@ textarea {
     border-radius: 16px;
 }
 
+.weather-visualization__close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 16px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #212121;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 10;
+}
+
+.weather-visualization__close-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+
+
 .weather-visualization__header {
     text-align: center;
     margin-bottom: 14px;
@@ -1315,12 +1340,12 @@ textarea {
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: rgb(255 255 255 / 20%);
     z-index: 9;
-    max-width: 290px;
+    max-width: 280px;
     transition: all 0.3s ease;
 }
 
 .map-selector__overlay:hover {
-    transform: scale(1.02);
+    background: rgb(255 255 255 / 60%);
 }
 
 .map-selector__overlay-content {
@@ -1347,7 +1372,13 @@ textarea {
     color: #272727;
     font-size: 14px;
     margin-bottom: 8px;
-    word-wrap: break-word;
+    padding: 1px 0;
+    margin-bottom: 8px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
 }
 
 .map-selector__overlay-coords {
@@ -1527,8 +1558,132 @@ textarea {
     color: #151515;
 }
 
+/* --- ESTILOS PARA O NOMINATIM AUTOCOMPLETE --- */
+
+.autocomplete-container {
+    position: relative;
+    flex-grow: 1;
+}
+
+.autocomplete-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.autocomplete-icon {
+    position: absolute;
+    left: 14px;
+    color: #212121;
+    width: 20px;
+    pointer-events: none;
+    display: none;
+}
+
+.autocomplete-input-wrapper .map-selector__input {
+    padding-right: 40px !important;
+}
+
+.autocomplete-spinner {
+    position: absolute;
+    right: 14px;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#autocomplete-portal {
+    width: 100%;
+}
+
+.autocomplete-results-list {
+    position: absolute;
+    top: 136px;
+    list-style: none;
+    padding: 14px;
+    width: 304px;
+    left: calc(50% - 152px);
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    gap: 8px;
+
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 20%);
+    backdrop-filter: blur(10px);
+}
+
+.autocomplete-results-list li {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background-color 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background-color: rgb(255 255 255 / 40%);
+}
+
+.autocomplete-results-list li:hover {
+    background: rgb(255 255 255 / 60%);
+}
+
+.autocomplete-results-list .result-icon {
+    margin-right: 12px;
+    color: #212121;
+    flex-shrink: 0;
+}
+
+.autocomplete-results-list li:hover .result-icon {
+    color: #212121;
+}
+
+.autocomplete-results-list .result-text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.autocomplete-results-list .result-main {
+    font-size: 14px;
+    font-weight: 400;
+    color: #212121;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 1px 0;
+    text-overflow: ellipsis;
+}
+
+.autocomplete-results-list .result-secondary {
+    font-size: 10px;
+    color: #212121;
+    white-space: nowrap;
+    padding: 1px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.autocomplete-results-list li:hover .result-main,
+.autocomplete-results-list li:hover .result-secondary {
+    color: #212121;
+}
+
 .map-selector__input:focus {
-    border-color: #89c081;
     outline: none;
 }
 
@@ -1977,8 +2132,8 @@ textarea {
 .api-status__main {
     background: rgba(255, 255, 255, 40%);
     backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 16px;
+    padding: 8px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
@@ -2096,12 +2251,12 @@ textarea {
 }
 
 .api-status__panel {
-    margin-top: 0.75rem;
+    margin-top: 14px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: rgb(255 255 255 / 20%);
     backdrop-filter: blur(10px);
-    border-radius: 1rem;
-    padding: 1rem;
+    border-radius: 16px;
+    padding: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     animation: slideUp 0.3s ease-out;
 }
@@ -2109,9 +2264,9 @@ textarea {
 .api-status__panel-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -2362,6 +2517,23 @@ textarea {
 }
 
 @media (max-width: 768px) {
+    .map-selector__overlay {
+        max-width: 150px;
+    }
+
+    .leaflet-control-zoom.leaflet-bar.leaflet-control {
+        position: absolute;
+        bottom: 14px !important;
+        right: 14px;
+    }
+
+    .leaflet-left {
+        left: 0;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
     .api-status__main-info {
         display: none;
     }
@@ -2394,8 +2566,8 @@ textarea {
 }
 
 .leaflet-touch .leaflet-bar a {
-    border: 1px solid rgba(232, 232, 232, 0.6) !important;
-    background-color: rgb(255 255 255 / 60%);
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    background-color: rgb(255 255 255 / 40%);
     backdrop-filter: blur(5px);
 }
 

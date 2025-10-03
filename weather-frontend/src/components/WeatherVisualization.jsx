@@ -1,7 +1,10 @@
-import React from 'react';
-import { Cloud, Sun, CloudRain, Snowflake, Wind, AlertTriangle, TrendingUp, Eye, Thermometer } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cloud, Sun, CloudRain, Snowflake, Wind, AlertTriangle, TrendingUp, Eye, Thermometer, X } from 'lucide-react'; // Importe o ícone X
 
 const WeatherVisualization = ({ weatherData }) => {
+    // Estado para controlar a visibilidade do componente
+    const [isVisible, setIsVisible] = useState(true);
+
     // Tratar valores nulos e estrutura de dados
     const safeConditions = {
         sunny: weatherData?.prediction?.conditions?.sunny || 0,
@@ -18,6 +21,17 @@ const WeatherVisualization = ({ weatherData }) => {
     const futureDate = weatherData?.futureDate;
     const temporalInsight = weatherData?.prediction?.temporalAnalysis?.insight;
     const limitations = weatherData?.prediction?.limitations || [];
+
+    // Função para fechar o componente ao clicar no contêiner principal
+    const handleClose = () => {
+        setIsVisible(false);
+    };
+
+    // Função para fechar a partir do botão interno, evitando propagação do evento
+    const handleCloseFromChild = (e) => {
+        e.stopPropagation(); // Impede que o clique acione o onClick do pai
+        setIsVisible(false);
+    };
 
     // Configuração dos ícones e cores para UI de clima
     const conditionConfig = {
@@ -49,7 +63,7 @@ const WeatherVisualization = ({ weatherData }) => {
             icon: Wind,
             color: '#10B981',
             label: 'Ventoso',
-            emoji: '��'
+            emoji: '🌬️'
         }
     };
 
@@ -180,9 +194,19 @@ const WeatherVisualization = ({ weatherData }) => {
     // Tratamento de dados inválidos
     const hasValidData = Object.values(safeConditions).some(val => val > 0);
 
+    // Se não for visível, retorna null para não renderizar nada
+    if (!isVisible) {
+        return null;
+    }
+
     return (
-        <div className="weather-visualization">
-            <div className="weather-visualization__container">
+        <div className="weather-visualization" onClick={handleClose}>
+            <div className="weather-visualization__container" onClick={(e) => e.stopPropagation()}>
+                {/* Botão para fechar o componente */}
+                <button onClick={handleCloseFromChild} className="weather-visualization__close-button">
+                    <X size={20} />
+                </button>
+
                 {/* Header */}
                 <div className="weather-visualization__header">
                     <h2 className="weather-visualization__title">
@@ -282,7 +306,8 @@ const WeatherVisualization = ({ weatherData }) => {
                             Dados Insuficientes
                         </h3>
                         <p className="weather-visualization__empty-state-description">
-                            Não foi possível calcular as probabilidades meteorológicas.<br />
+                            Não foi possível calcular as probabilidades meteorológicas.
+
                             Verifique os dados históricos da região selecionada.
                         </p>
                     </div>
