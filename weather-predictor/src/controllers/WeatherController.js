@@ -121,7 +121,7 @@ class WeatherController {
                         role: "metadata_validation",
                     },
                     giovanni: {
-                        status: "available",
+                        status: "connected",
                         message: "Visualization links generated",
                         role: "data_visualization",
                     },
