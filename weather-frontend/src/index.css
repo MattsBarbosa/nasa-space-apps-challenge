@@ -496,19 +496,18 @@ textarea {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.07);
-    /* backdrop-filter: blur(10px); */
     padding: 0 14px;
     z-index: 11;
 }
 
 .weather-visualization__container {
-    padding: 14px;
+    padding: 24px;
     position: relative;
     width: 100%;
     max-width: 800px;
     backdrop-filter: blur(10px);
-    background: rgb(255 255 255 / 40%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 80%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border-radius: 16px;
 }
@@ -536,8 +535,6 @@ textarea {
     transform: scale(1.1);
 }
 
-
-
 .weather-visualization__header {
     text-align: center;
     margin-bottom: 14px;
@@ -547,8 +544,8 @@ textarea {
     font-size: 24px;
     font-weight: 100;
     color: #151515;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+    letter-spacing: 1.2;
+    margin-bottom: 8px;
 }
 
 .weather-visualization__subtitle {
@@ -1161,9 +1158,9 @@ textarea {
     padding: 14px;
     border-radius: 16px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     gap: 14px;
-    background: rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 80%);
     backdrop-filter: blur(10px);
     position: fixed;
     z-index: 10;
@@ -1199,11 +1196,12 @@ textarea {
     flex-grow: 1;
     flex-direction: column;
     gap: 8px;
+    position: relative;
 }
 
 .map-selector__header-btn {
-    width: 48px;
-    height: 48px;
+    width: 38px;
+    height: 38px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1213,10 +1211,19 @@ textarea {
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1;
 }
 
 .map-selector__header-btn:hover {
     background-color: #12557f;
+}
+
+.map-selector__header-btn svg {
+    width: 24px;
+    height: 24px;
 }
 
 .map-selector__title {
@@ -1282,10 +1289,10 @@ textarea {
 }
 
 .map-selector__location-btn-spinner {
-    width: 1rem;
-    height: 1rem;
+    width: 24px;
+    height: 24px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid #151515;
+    border-top: 2px solid #FFF;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -1338,7 +1345,8 @@ textarea {
     padding: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 60%);
+    background: rgb(255 132 0 / 70%);
     z-index: 9;
     max-width: 280px;
     transition: all 0.3s ease;
@@ -1346,6 +1354,7 @@ textarea {
 
 .map-selector__overlay:hover {
     background: rgb(255 255 255 / 60%);
+    background: rgb(255 132 0 / 80%);
 }
 
 .map-selector__overlay-content {
@@ -1369,21 +1378,20 @@ textarea {
 
 .map-selector__overlay-name {
     font-weight: 500;
-    color: #272727;
+    color: #FFF;
     font-size: 14px;
-    margin-bottom: 8px;
-    padding: 1px 0;
     margin-bottom: 8px;
     text-overflow: ellipsis;
     overflow: hidden;
+    -webkit-line-clamp: 2;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
+    line-height: 1.2;
 }
 
 .map-selector__overlay-coords {
     font-size: 12px;
-    color: #272727;
+    color: #FFF;
     margin-bottom: 8px;
 }
 
@@ -1403,7 +1411,7 @@ textarea {
 
 .map-selector__overlay-status span {
     font-size: 12px;
-    color: #272727;
+    color: #FFF;
 }
 
 .map-selector__hint {
@@ -1544,7 +1552,7 @@ textarea {
 
 .map-selector__input {
     border: 1px solid rgba(255, 255, 255, 0.6);
-    background-color: rgb(255 255 255 / 40%);
+    background-color: rgb(255 255 255 / 90%);
     border-radius: 12px;
     width: 100%;
     height: 38px;
@@ -1558,6 +1566,31 @@ textarea {
     color: #151515;
 }
 
+.map-selector__map-container .leaflet-control-container > div {
+    left: auto;
+    top: auto;
+    bottom: 14px;
+    right: 14px;
+}
+
+.map-selector__map-container .leaflet-control-container .leaflet-control-zoom {
+    margin: 0 !important;
+}
+
+.map-selector__map-container .leaflet-control-container .leaflet-control-zoom span {
+    color: #151515;
+}
+
+.map-selector__map-container .leaflet-control-container .leaflet-control-zoom.leaflet-bar a {
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgb(255 255 255 / 80%) !important;
+    backdrop-filter: blur(10px) !important;
+    transition: all .3s ease;
+}
+
+.map-selector__map-container .leaflet-control-container .leaflet-control-zoom.leaflet-bar a:hover {
+    background: rgb(255 255 255 / 90%) !important;
+}
 /* --- ESTILOS PARA O NOMINATIM AUTOCOMPLETE --- */
 
 .autocomplete-container {
@@ -1581,18 +1614,20 @@ textarea {
 }
 
 .autocomplete-input-wrapper .map-selector__input {
-    padding-right: 40px !important;
+    padding-right: 50px !important;
 }
 
 .autocomplete-spinner {
     position: absolute;
-    right: 14px;
-    width: 20px;
-    height: 20px;
+    right: 7px;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    background: #166393;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
+    border-top: 2px solid #FFF;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -2130,18 +2165,18 @@ textarea {
 }
 
 .api-status__main {
-    background: rgba(255, 255, 255, 40%);
+    background: rgba(255, 255, 255, 80%);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .api-status__main:hover {
-    background: rgba(255, 255, 255, 60%);
+    background: rgba(255, 255, 255, 90%);
 }
 
 .api-status--healthy .api-status__main {
@@ -2159,7 +2194,7 @@ textarea {
 .api-status__main-content {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 10px;
 }
 
 .api-status__loading-icon {
@@ -2211,24 +2246,23 @@ textarea {
 }
 
 .api-status__main-text {
-    font-size: 0.875rem;
+    font-size: 14px;
     font-weight: 500;
-    color: #272727;
+    color: #151515;
 }
 
 .api-status__main-status {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
+    gap: 4px;
+    margin-top: 4px;
 }
 
 .api-status__main-dot {
-    width: 0.5rem;
-    height: 0.5rem;
+    width: 8px;
+    height: 8px;
     background: #10b981;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
+    border-radius: 16px;
 }
 
 .api-status__main-status-text {
@@ -2252,13 +2286,12 @@ textarea {
 
 .api-status__panel {
     margin-top: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgb(255 255 255 / 20%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgb(255 255 255 / 80%);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 14px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    animation: slideUp 0.3s ease-out;
 }
 
 .api-status__panel-header {
@@ -2271,9 +2304,9 @@ textarea {
 }
 
 .api-status__panel-header-text {
-    color: #272727;
+    color: #151515;
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 14px;
 }
 
 .api-status__components {
@@ -2288,13 +2321,14 @@ textarea {
     justify-content: space-between;
     padding: 8px;
     border-radius: 8px;
-    background-color: rgb(255 255 255 / 40%);
+    background-color: rgb(255 255 255 / 90%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     transition: all 0.3s ease;
     gap: 8px;
 }
 
 .api-status__component:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 100%);
 }
 
 .api-status__component-info {
@@ -2340,14 +2374,15 @@ textarea {
 }
 
 .api-status__component-name {
-    color: #272727;
-    font-size: 0.875rem;
+    color: #151515;
+    font-size: 14px;
     font-weight: 500;
 }
 
 .api-status__component-desc {
     font-size: 10px;
-    color: #3d3d3d;
+    color: #151515;
+    margin-top: 4px;
 }
 
 .api-status__component-status {
@@ -2377,17 +2412,17 @@ textarea {
 }
 
 .api-status__component-status-text--success {
-    color: #34d399;
+    color: #10b981;
 }
 
 .api-status__component-status-text--error {
-    color: #f87171;
+    color: #ef4444;
 }
 
 .api-status__metrics {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
@@ -2397,7 +2432,7 @@ textarea {
     text-align: center;
     padding: 8px;
     border-radius: 8px;
-    background-color: rgb(255 255 255 / 40%);
+    background-color: rgb(255 255 255 / 90%);
 }
 
 .api-status__metric-header {
@@ -2430,9 +2465,9 @@ textarea {
 }
 
 .api-status__timestamp {
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.4);
     text-align: center;
 }
 
@@ -2440,38 +2475,37 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .api-status__timestamp-dot {
-    width: 0.25rem;
-    height: 0.25rem;
-    background: #3d3d3d;
-    border-radius: 50%;
+    width: 4px;
+    height: 4px;
+    background: #151515;
+    border-radius: 8px;
 }
 
 .api-status__timestamp-text {
     font-size: 10px;
-    color: #3d3d3d;
+    color: #151515;
 }
 
 .api-status__refresh-btn {
     width: 100%;
-    margin-top: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
+    margin-top: 12px;
+    background: rgba(255, 255, 255, 80%);
     backdrop-filter: blur(10px);
     border-radius: 8px;
     padding: 8px;
     font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 40%);
+    border: 1px solid rgba(255, 255, 255, .4);
     color: #272727;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .api-status__refresh-btn:hover {
-    background: rgba(255, 255, 255, 60%);
-    transform: translateY(-1px);
+    background: rgb(229 229 229);
 }
 
 .api-status__refresh-btn:disabled {
@@ -2483,7 +2517,13 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 8px;
+}
+
+.api-status__refresh-btn-content span {
+    font-size: 14px;
+    font-weight: 400;
+    color: #151515;
 }
 
 .api-status__refresh-btn-spinner {
@@ -2496,8 +2536,9 @@ textarea {
 }
 
 .api-status__refresh-btn-icon {
-    width: 1rem;
-    height: 1rem;
+    color: #151515;
+    width: 16px;
+    height: 16px;
     transition: transform 0.3s ease;
 }
 
@@ -2519,12 +2560,6 @@ textarea {
 @media (max-width: 768px) {
     .map-selector__overlay {
         max-width: 150px;
-    }
-
-    .leaflet-control-zoom.leaflet-bar.leaflet-control {
-        position: absolute;
-        bottom: 14px !important;
-        right: 14px;
     }
 
     .leaflet-left {

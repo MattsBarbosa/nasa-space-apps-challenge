@@ -83,8 +83,6 @@ const NominatimAutocomplete = ({ onPlaceSelect }) => {
 };
 // --- FIM DO WIDGET DE AUTOCOMPLETE ---
 
-
-// Fix para ícones do Leaflet no React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -92,7 +90,6 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 } );
 
-// Componente que captura cliques no mapa
 const MapClickHandler = ({ onLocationSelect }) => {
     useMapEvents({
         click: (e) => onLocationSelect({ lat: e.latlng.lat, lon: e.latlng.lng }),
@@ -100,7 +97,6 @@ const MapClickHandler = ({ onLocationSelect }) => {
     return null;
 };
 
-// Componente que move o mapa para seguir o pin
 const MapController = ({ center, zoom }) => {
     const map = useMap();
     useEffect(() => {
@@ -111,7 +107,6 @@ const MapController = ({ center, zoom }) => {
     return null;
 };
 
-// Componente principal do seletor de localização com mapa
 const MapLocationSelector = ({ onLocationSubmit, loading }) => {
     const [selectedLocation, setSelectedLocation] = useState({ lat: -26.9189, lon: -49.0658, name: 'Blumenau, SC' });
     const [date, setDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
@@ -132,7 +127,6 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
         { name: 'Sydney, Austrália', lat: -33.8688, lon: 151.2093, zoom: 11, emoji: '🦘', climate: 'Mediterrâneo' }
     ];
 
-    // Função centralizada para atualizar a localização
     const handleLocationUpdate = useCallback(async ({ lat, lon, name = null, zoom = 13 }) => {
         const latNum = parseFloat(lat);
         const lonNum = parseFloat(lon);
@@ -143,7 +137,6 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
         setMapZoom(zoom);
     }, []);
 
-    // ATUALIZADO: Usa Nominatim para geocodificação reversa
     const reverseGeocode = async (lat, lon) => {
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=pt,en` );
@@ -170,11 +163,9 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
         );
     };
 
-    // ATUALIZADO: Funções de clique e preset usam a função centralizada
     const handleMapClick = ({ lat, lon }) => handleLocationUpdate({ lat, lon });
     const handlePresetSelect = (location) => handleLocationUpdate(location);
 
-    // ATUALIZADO: Função para lidar com a seleção do autocomplete
     const handlePlaceSelect = (place) => {
         if (place) {
             handleLocationUpdate({ lat: place.lat, lon: place.lon, name: place.display_name, zoom: 14 });
@@ -197,13 +188,13 @@ const MapLocationSelector = ({ onLocationSubmit, loading }) => {
                 </div>
                 <form onSubmit={(e ) => e.preventDefault()} className="map-selector__header-form">
                     <NominatimAutocomplete onPlaceSelect={handlePlaceSelect} />
-                    <label htmlFor="search-d" className="map-selector__label">
-                        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split('T')[0]} max={new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} className="map-selector__input" autoComplete="off" required />
+                    <label htmlFor="search-date" className="map-selector__label">
+                        <input type="date" name="search-date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split('T')[0]} max={new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} className="map-selector__input" autoComplete="off" required />
                     </label>
+                    <button type="button" onClick={getCurrentLocation} disabled={isLoadingLocation} className="map-selector__header-btn">
+                        {isLoadingLocation ? <div className="map-selector__location-btn-spinner" /> : <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-current-location"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0" /><path d="M12 2l0 2" /><path d="M12 20l0 2" /><path d="M20 12l2 0" /><path d="M2 12l2 0" /></svg>}
+                    </button>
                 </form>
-                <button type="button" onClick={getCurrentLocation} disabled={isLoadingLocation} className="map-selector__header-btn">
-                    {isLoadingLocation ? <div className="map-selector__location-btn-spinner" /> : <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-send"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></svg>}
-                </button>
             </div>
 
             <form onSubmit={handleSubmit} className="map-selector__form">
