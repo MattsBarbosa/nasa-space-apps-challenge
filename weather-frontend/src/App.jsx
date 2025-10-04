@@ -122,10 +122,10 @@ function App() {
                 <div className="app__container">
                     <div className="app__footer-card">
                         <div className="app__footer-content">
-                            <Satellite className="app__footer-icon" />
-                            <span>Powered by NASA Weather Data</span>
+                            <img src="../public/logo-nasa.png" alt="" />
+                            <span>Preview Clima</span>
                             <div className="app__footer-separator"></div>
-                            <span>Space Apps Challenge 2024</span>
+                            <span>Space Apps Challenge 2025</span>
                         </div>
                     </div>
                 </div>
