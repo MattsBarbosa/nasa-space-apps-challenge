@@ -10,7 +10,9 @@
     },
     "dependencies": {
         "@google/genai": "^1.22.0",
-        "hono": "^4.5.0"
+        "@hono-rate-limiter/cloudflare": "^0.2.2",
+        "hono": "^4.5.0",
+        "hono-rate-limiter": "^0.4.2"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20240903.0",
