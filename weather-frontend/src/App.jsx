@@ -346,7 +346,6 @@ const AppContent = () => {
                     <img src="../src/assets/logo-nasa.png" alt="logo skydata" />
                     <span className="title_name">SkyData</span>
                 </div>
-                <span className="title_slogan">Planeje de forma segura</span>
             </header>
 
             {/* Main Content */}
