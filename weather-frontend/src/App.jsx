@@ -341,18 +341,9 @@ const AppContent = () => {
 
             {/* Header */}
             <header className="app__header">
-                <div className="app__container">
-                    <div className="app__header-content">
-                        <div className="app__header-info">
-                            <h1 className="app__header-title">
-                                <Satellite className="app__header-icon" />
-                                {t('app.title')}
-                            </h1>
-                            <p className="app__header-subtitle">
-                                {t('app.subtitle')}
-                            </p>
-                        </div>
-                    </div>
+                <div className="header__container">
+                    <img src="../src/assets/logo-nasa.png" alt="logo skydata" />
+                    <span className="title_name">SkyData</span>
                 </div>
             </header>
 

@@ -53,60 +53,33 @@ textarea {
 }
 
 .app__header {
-    position: relative;
+    position: absolute;
     z-index: 50;
-    display: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    pointer-events: none;
+    left: calc(50% - 187px);
+    top: 14px;
+    width: 374px;
 }
 
-.app__header-content {
+.app__header span {
+    font-size: 12px;
+    gap: 4px;
+    color: #212121;
+}
+
+.app__header .header__container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 20px 0;
 }
-
-.app__header-info {
-    flex: 1;
+.app__header .title_slogan {
+    font-size: 10px;
 }
-
-.app__header-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-shrink: 0;
-}
-
-.app__header-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 2.5rem;
-    font-weight: 100;
-    color: #151515;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
-}
-
-.app__header-icon {
-    width: 2rem;
-    height: 2rem;
-}
-
-.app__header-subtitle {
-    color: #272727;
-    font-size: 1.125rem;
-    font-weight: 300;
-    line-height: 1.6;
-}
-
-.app__container {
-    margin: 0;
-}
-
-.app__main {
-    position: relative;
-    z-index: 10;
+.app__header img {
+    width: 24px;
 }
 
 /* ===== ALERTS ===== */
@@ -2856,24 +2829,6 @@ textarea {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .app__header-content {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-    }
-
-    .app__header-controls {
-        align-self: flex-end;
-    }
-
-    .app__header-title {
-        font-size: 2rem;
-    }
-
-    .app__header-subtitle {
-        font-size: 1rem;
-    }
-
     .app__loading-state {
         padding: 2rem 1.5rem;
     }
@@ -2995,18 +2950,6 @@ textarea {
 }
 
 @media (max-width: 480px) {
-    .app__header-content {
-        gap: 12px;
-    }
-
-    .app__header-controls {
-        gap: 12px;
-    }
-
-    .app__header-title {
-        font-size: 1.75rem;
-    }
-
     .language-selector__flag {
         font-size: 16px;
     }
