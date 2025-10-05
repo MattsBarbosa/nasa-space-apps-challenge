@@ -218,7 +218,6 @@ const AppContent = () => {
     };
 
     const handleChatWeatherData = (chatWeatherData) => {
-        // Converter dados do chat para o formato esperado pela visualização
         const convertedData = {
             request: {
                 latitude: chatWeatherData.coordinates.lat,
@@ -246,7 +245,7 @@ const AppContent = () => {
         };
 
         setWeatherData(convertedData);
-        setError(null); // Limpar qualquer erro anterior
+        setError(null);
     };
 
     const handleChatSubmit = async (e) => {
@@ -478,103 +477,11 @@ const AppContent = () => {
             </main>
 
             {/* Weather Chat */}
-            <WeatherChat onWeatherDataReceived={handleChatWeatherData} />
+            {/* <WeatherChat onWeatherDataReceived={handleChatWeatherData} /> */}
 
             {/* Footer */}
             <footer className="app__footer">
                 <div className="app__container">
-                    <div className="app__footer-card app__chat-section">
-                        <div className="app__chat-header">
-                            <h3 className="app__chat-title">
-                                {t('chat.title')}
-                            </h3>
-                            <div className="app__chat-status">
-                                <div className="app__chat-status-indicator"></div>
-                                <span>{t('chat.status')}</span>
-                            </div>
-                        </div>
-
-                        <div className="chat-history" ref={chatContainerRef}>
-                            {messages.map((msg, index) => (
-                                <div key={index} className={`chat-message ${msg.role}-message`}>
-                                    <div className="chat-message-content">
-                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                                    </div>
-                                    <div className="chat-message-time">
-                                        {new Date().toLocaleTimeString('pt-BR', {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </div>
-                                </div>
-                            ))}
-                            {chatLoading && (
-                                <div className="chat-message assistant-message">
-                                    <div className="typing-indicator">
-                                        <span></span>
-                                        <span></span>
-                                        <span></span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {chatError && (
-                            <div className="app__chat-error">
-                                <AlertTriangle size={16} />
-                                <span>{chatError}</span>
-                                <button
-                                    onClick={() => setChatError(null)}
-                                    className="app__chat-error-close"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleChatSubmit} className="app__chat-form">
-                            <div className="app__chat-input-wrapper">
-                                <input
-                                    type="text"
-                                    className="app__chat-input"
-                                    value={chatInput}
-                                    onChange={(e) => setChatInput(e.target.value)}
-                                    placeholder={t('chat.placeholder')}
-                                    disabled={chatLoading}
-                                    autoFocus
-                                />
-                                <button
-                                    type="submit"
-                                    className="app__chat-button"
-                                    disabled={chatLoading || !chatInput.trim()}
-                                >
-                                    {chatLoading ? (
-                                        <div className="app__chat-button-spinner"></div>
-                                    ) : (
-                                        <Send size={20} />
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-
-                        {messages.length === 1 && (
-                            <div className="app__chat-suggestions">
-                                <p className="app__chat-suggestions-title">{t('chat.suggestions.title')}</p>
-                                <div className="app__chat-suggestions-grid">
-                                    {t('chat.suggestions.items', []).map((suggestion, index) => (
-                                        <button
-                                            key={index}
-                                            className="app__chat-suggestion"
-                                            onClick={() => setChatInput(suggestion)}
-                                            disabled={chatLoading}
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
                 </div>
             </footer>
         </div>

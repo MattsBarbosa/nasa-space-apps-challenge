@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Bot, User, X, MapPin, Calendar, RotateCcw } from 'lucide-react';
+import { Send, Bot, User, MapPin, Calendar, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import '../App.css';
 
-const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
-    const [isOpen, setIsOpen] = useState(false);
+const WeatherChat = ({ 
+    onWeatherDataReceived, 
+    className = '',
+    onInputFocus,
+    onInputBlur,
+    isInputFocused 
+}) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isUserScrolling, setIsUserScrolling] = useState(false);
     const [messages, setMessages] = useState([
         {
             role: 'assistant',
@@ -18,29 +25,93 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
     const [context, setContext] = useState({});
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const messagesContainerRef = useRef(null);
+    const scrollTimeoutRef = useRef(null);
 
     const API_BASE_URL = 'https://nasa-weather-predictor.webdevinkel.workers.dev';
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToBottom = (force = false) => {
+        if (!force && isUserScrolling) return;
+        
+        messagesEndRef.current?.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'end'
+        });
+    };
+
+    // Detectar quando usuário está fazendo scroll manual
+    const handleScroll = () => {
+        if (!messagesContainerRef.current) return;
+        
+        const container = messagesContainerRef.current;
+        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+        
+        setIsUserScrolling(!isAtBottom);
+        
+        // Reset do flag após um tempo sem scroll
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+        
+        scrollTimeoutRef.current = setTimeout(() => {
+            setIsUserScrolling(false);
+        }, 2000);
     };
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        // Só fazer scroll automático se não for scroll do usuário
+        if (!isUserScrolling) {
+            scrollToBottom();
+        }
+    }, [messages, isUserScrolling]);
 
     useEffect(() => {
-    const chatContainer = messagesEndRef.current?.parentNode;
-    if (!chatContainer) return;
+        const container = messagesContainerRef.current;
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            return () => {
+                container.removeEventListener('scroll', handleScroll);
+                if (scrollTimeoutRef.current) {
+                    clearTimeout(scrollTimeoutRef.current);
+                }
+            };
+        }
+    }, []);
 
-    const currentScroll = chatContainer.scrollTop; 
-    const currentHeight = chatContainer.scrollHeight;
+    const handleInputFocus = () => {
+        setIsExpanded(true);
+        if (onInputFocus) {
+            onInputFocus();
+        }
+        // Scroll para baixo quando expandir
+        setTimeout(() => scrollToBottom(true), 300);
+    };
 
-    requestAnimationFrame(() => {
-        const newHeight = chatContainer.scrollHeight;
-        chatContainer.scrollTop = currentScroll + (newHeight - currentHeight);
-    });
-}, [messages]);
+    const handleInputBlur = () => {
+        setTimeout(() => {
+            if (!document.activeElement?.closest('.weather-chat__panel')) {
+                setIsExpanded(false);
+                if (onInputBlur) {
+                    onInputBlur();
+                }
+            }
+        }, 150);
+    };
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+        if (!isExpanded) {
+            if (onInputFocus) {
+                onInputFocus();
+            }
+            // Scroll para baixo quando expandir manualmente
+            setTimeout(() => scrollToBottom(true), 300);
+        } else {
+            if (onInputBlur) {
+                onInputBlur();
+            }
+        }
+    };
 
     const formatMessage = (content) => {
         return content
@@ -53,34 +124,202 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
     };
 
     const extractWeatherData = (content) => {
-        const tempMatch = content.match(/(\d+)°C/);
-        const dateMatch = content.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
-        const locationMatch = context.location;
-
-        if (tempMatch && dateMatch && locationMatch) {
-            return {
-                location: locationMatch,
-                date: `${dateMatch[3]}-${getMonthNumber(dateMatch[2])}-${dateMatch[1].padStart(2, '0')}`,
-                temperature: parseInt(tempMatch[1]),
-                coordinates: {
-                    lat: context.latitude,
-                    lon: context.longitude
-                },
-                probabilities: extractProbabilities(content),
-                source: 'chat'
-            };
-        }
-        return null;
-    };
-
-    const getMonthNumber = (monthName) => {
-        const months = {
-            'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
-            'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
-            'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12'
+    console.log('Extraindo dados do contexto:', context);
+    console.log('Conteúdo da resposta:', content);
+    
+    // Tentar extrair coordenadas do contexto primeiro
+    let coordinates = null;
+    if (context.latitude && context.longitude) {
+        coordinates = {
+            lat: parseFloat(context.latitude),
+            lon: parseFloat(context.longitude)
         };
-        return months[monthName.toLowerCase()] || '01';
+    }
+    
+    // Se não tiver coordenadas no contexto, tentar extrair da resposta ou usar coordenadas conhecidas
+    if (!coordinates) {
+        const latMatch = content.match(/latitude[:\s]*(-?\d+\.?\d*)/i);
+        const lonMatch = content.match(/longitude[:\s]*(-?\d+\.?\d*)/i);
+        
+        if (latMatch && lonMatch) {
+            coordinates = {
+                lat: parseFloat(latMatch[1]),
+                lon: parseFloat(lonMatch[1])
+            };
+        } else {
+            // Mapeamento de cidades conhecidas para coordenadas
+            const cityCoordinates = {
+                'tóquio': { lat: 35.6762, lon: 139.6503 },
+                'tokyo': { lat: 35.6762, lon: 139.6503 },
+                'paris': { lat: 48.8566, lon: 2.3522 },
+                'new york': { lat: 40.7128, lon: -74.0060 },
+                'nova york': { lat: 40.7128, lon: -74.0060 },
+                'london': { lat: 51.5074, lon: -0.1278 },
+                'londres': { lat: 51.5074, lon: -0.1278 },
+                'são paulo': { lat: -23.5505, lon: -46.6333 },
+                'sao paulo': { lat: -23.5505, lon: -46.6333 },
+                'rio de janeiro': { lat: -22.9068, lon: -43.1729 },
+                'madrid': { lat: 40.4168, lon: -3.7038 },
+                'barcelona': { lat: 41.3851, lon: 2.1734 },
+                'rome': { lat: 41.9028, lon: 12.4964 },
+                'roma': { lat: 41.9028, lon: 12.4964 },
+                'berlin': { lat: 52.5200, lon: 13.4050 },
+                'berlim': { lat: 52.5200, lon: 13.4050 },
+                'moscow': { lat: 55.7558, lon: 37.6176 },
+                'moscou': { lat: 55.7558, lon: 37.6176 },
+                'beijing': { lat: 39.9042, lon: 116.4074 },
+                'pequim': { lat: 39.9042, lon: 116.4074 },
+                'sydney': { lat: -33.8688, lon: 151.2093 },
+                'los angeles': { lat: 34.0522, lon: -118.2437 },
+                'chicago': { lat: 41.8781, lon: -87.6298 },
+                'miami': { lat: 25.7617, lon: -80.1918 },
+                'dubai': { lat: 25.2048, lon: 55.2708 },
+                'singapore': { lat: 1.3521, lon: 103.8198 },
+                'singapura': { lat: 1.3521, lon: 103.8198 },
+                'mumbai': { lat: 19.0760, lon: 72.8777 },
+                'delhi': { lat: 28.7041, lon: 77.1025 },
+                'bangkok': { lat: 13.7563, lon: 100.5018 },
+                'cairo': { lat: 30.0444, lon: 31.2357 },
+                'cidade do cabo': { lat: -33.9249, lon: 18.4241 },
+                'cape town': { lat: -33.9249, lon: 18.4241 },
+                'buenos aires': { lat: -34.6118, lon: -58.3960 },
+                'lima': { lat: -12.0464, lon: -77.0428 },
+                'bogotá': { lat: 4.7110, lon: -74.0721 },
+                'bogota': { lat: 4.7110, lon: -74.0721 },
+                'mexico city': { lat: 19.4326, lon: -99.1332 },
+                'cidade do méxico': { lat: 19.4326, lon: -99.1332 },
+                'toronto': { lat: 43.6532, lon: -79.3832 },
+                'vancouver': { lat: 49.2827, lon: -123.1207 },
+                'montreal': { lat: 45.5017, lon: -73.5673 },
+                'brasília': { lat: -15.8267, lon: -47.9218 },
+                'brasilia': { lat: -15.8267, lon: -47.9218 },
+                'salvador': { lat: -12.9714, lon: -38.5014 },
+                'fortaleza': { lat: -3.7319, lon: -38.5267 },
+                'recife': { lat: -8.0476, lon: -34.8770 },
+                'porto alegre': { lat: -30.0346, lon: -51.2177 },
+                'curitiba': { lat: -25.4284, lon: -49.2733 },
+                'belo horizonte': { lat: -19.9191, lon: -43.9378 },
+                'manaus': { lat: -3.1190, lon: -60.0217 },
+                'belém': { lat: -1.4558, lon: -48.5044 },
+                'belem': { lat: -1.4558, lon: -48.5044 },
+                'goiânia': { lat: -16.6869, lon: -49.2648 },
+                'goiania': { lat: -16.6869, lon: -49.2648 }
+            };
+            
+            // Procurar por nome da cidade na resposta
+            const responseText = content.toLowerCase();
+            let foundCity = null;
+            
+            // Primeiro tentar extrair do contexto se houver location
+            if (context.location) {
+                const contextLocation = context.location.toLowerCase();
+                for (const [city, coords] of Object.entries(cityCoordinates)) {
+                    if (contextLocation.includes(city)) {
+                        foundCity = coords;
+                        break;
+                    }
+                }
+            }
+            
+            // Se não encontrou no contexto, procurar na resposta
+            if (!foundCity) {
+                for (const [city, coords] of Object.entries(cityCoordinates)) {
+                    if (responseText.includes(city)) {
+                        foundCity = coords;
+                        break;
+                    }
+                }
+            }
+            
+            if (foundCity) {
+                coordinates = foundCity;
+            }
+        }
+    }
+    
+    // Extrair data
+    let extractedDate = null;
+    if (context.date) {
+        extractedDate = context.date;
+    } else {
+        // Tentar extrair data da resposta - múltiplos formatos
+        const datePatterns = [
+            /(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/i, // "20 de abril de 2030"
+            /(\d{4})-(\d{2})-(\d{2})/i, // "2030-04-20"
+            /(\d{1,2})\/(\d{1,2})\/(\d{4})/i, // "20/04/2030"
+        ];
+        
+        for (const pattern of datePatterns) {
+            const match = content.match(pattern);
+            if (match) {
+                if (pattern === datePatterns[0]) { // formato "20 de abril de 2030"
+                    extractedDate = `${match[3]}-${getMonthNumber(match[2])}-${match[1].padStart(2, '0')}`;
+                } else if (pattern === datePatterns[1]) { // formato "2030-04-20"
+                    extractedDate = match[0];
+                } else if (pattern === datePatterns[2]) { // formato "20/04/2030"
+                    extractedDate = `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+                }
+                break;
+            }
+        }
+    }
+    
+    // Extrair localização
+    let location = context.location || 'Local não identificado';
+    
+    // Tentar extrair localização da resposta se não tiver no contexto
+    if (!context.location || context.location === 'Local não identificado') {
+        const locationPatterns = [
+            /em\s+([^,]+),\s+a\s+probabilidade/i, // "em Tóquio, a probabilidade"
+            /em\s+([^,]+)\s+em\s+\d/i, // "em Tóquio em 20"
+            /,\s+em\s+([^,]+),/i, // ", em Tóquio,"
+        ];
+        
+        for (const pattern of locationPatterns) {
+            const match = content.match(pattern);
+            if (match) {
+                location = match[1].trim();
+                break;
+            }
+        }
+    }
+    
+    // Extrair temperatura
+    const tempMatch = content.match(/(\d+)°C/);
+    
+    console.log('Dados extraídos:', {
+        location,
+        date: extractedDate,
+        coordinates,
+        temperature: tempMatch ? parseInt(tempMatch[1]) : null
+    });
+    
+    // Retornar dados se tiver pelo menos coordenadas OU localização válida
+    if (coordinates || (location && location !== 'Local não identificado')) {
+        return {
+            location,
+            date: extractedDate,
+            temperature: tempMatch ? parseInt(tempMatch[1]) : null,
+            coordinates,
+            probabilities: extractProbabilities(content),
+            source: 'chat'
+        };
+    }
+    
+    return null;
+};
+
+const getMonthNumber = (monthName) => {
+    const months = {
+        'janeiro': '01', 'fevereiro': '02', 'março': '03', 'abril': '04',
+        'maio': '05', 'junho': '06', 'julho': '07', 'agosto': '08',
+        'setembro': '09', 'outubro': '10', 'novembro': '11', 'dezembro': '12',
+        'january': '01', 'february': '02', 'march': '03', 'april': '04',
+        'may': '05', 'june': '06', 'july': '07', 'august': '08',
+        'september': '09', 'october': '10', 'november': '11', 'december': '12'
     };
+    return months[monthName.toLowerCase()] || '01';
+};
 
     const extractProbabilities = (content) => {
         const probabilities = {};
@@ -124,6 +363,8 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
 
             const result = await response.json();
 
+            console.log('Resultado da API:', result);
+
             if (response.ok) {
                 setSessionId(result.sessionId);
                 setSessionStatus(result.status);
@@ -140,6 +381,8 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                 // Se a conversa foi finalizada, tentar extrair dados para o mapa
                 if (result.status === 'completed') {
                     const weatherData = extractWeatherData(result.response);
+                    console.log('Dados do tempo extraídos:', weatherData);
+                    
                     if (weatherData && onWeatherDataReceived) {
                         onWeatherDataReceived(weatherData);
                     }
@@ -154,10 +397,9 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                                 timestamp: new Date()
                             }
                         ]);
+                        // Forçar scroll para mostrar mensagem de finalização
+                        setTimeout(() => scrollToBottom(true), 100);
                     }, 2000);
-
-                    // Não fazer reset automático, deixar o usuário decidir
-                
                 }
             } else {
                 setMessages(prev => [
@@ -195,6 +437,9 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                 timestamp: new Date()
             }
         ]);
+        // Reset do scroll quando iniciar nova conversa
+        setIsUserScrolling(false);
+        setTimeout(() => scrollToBottom(true), 100);
     };
 
     const handleSubmit = (e) => {
@@ -224,52 +469,70 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
         resetSession();
     };
 
-    const toggleChat = () => {
-        setIsOpen(!isOpen);
-    };
-
     return (
-        <>
-            {/* Chat Toggle Button */}
-            <button 
-                className={`weather-chat__toggle ${isOpen ? 'weather-chat__toggle--active' : ''}`}
-                onClick={toggleChat}
-                title={isOpen ? 'Fechar Chat' : 'Abrir Chat com IA'}
-            >
-                {isOpen ? <X size={20} /> : <MessageCircle size={20} />}
-                {!isOpen && sessionStatus === 'active' && (
-                    <div className="weather-chat__notification"></div>
-                )}
-            </button>
+        <div className={`weather-chat ${className}`} data-status={sessionStatus}>
+            {/* Input sempre visível */}
+            <div className="weather-chat__input-container">
+                <form className="weather-chat__form" onSubmit={handleSubmit}>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        onFocus={handleInputFocus}
+                        onBlur={handleInputBlur}
+                        placeholder={sessionStatus === 'completed' 
+                            ? "Digite para iniciar nova consulta..." 
+                            : "Pergunte sobre o tempo em uma data futura..."
+                        }
+                        className="weather-chat__input"
+                        disabled={isLoading}
+                    />
+                    <button 
+                        type="submit" 
+                        className="weather-chat__send"
+                        disabled={isLoading || !inputValue.trim()}
+                        title="Enviar mensagem"
+                    >
+                        <Send size={18} />
+                    </button>
+                    <button 
+                        type="button"
+                        className="weather-chat__expand-toggle"
+                        onClick={toggleExpanded}
+                        title={isExpanded ? "Minimizar chat" : "Expandir chat"}
+                    >
+                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        {!isExpanded && sessionStatus === 'active' && (
+                            <div className="weather-chat__notification"></div>
+                        )}
+                    </button>
+                </form>
+            </div>
 
-            {/* Chat Panel */}
-            {isOpen && (
-                <div className={`weather-chat__panel ${className}`} data-status={sessionStatus}>
+            {/* Painel expandido */}
+            {isExpanded && (
+                <div className="weather-chat__panel">
                     <div className="weather-chat__header">
                         <div className="weather-chat__header-info">
-                            <div className='weather-chat__header-container'>
-                                <h3 className="weather-chat__header-title">Meteorologista IA</h3>
-                                <div className="weather-chat__session-info">
-                                    <span className="weather-chat__session-id">
-                                        {sessionId ? `${sessionId.substring(0, 12)}...` : 'Nova conversa'}
-                                    </span>
-                                    <span className={`weather-chat__status weather-chat__status--${sessionStatus}`}>
-                                        {sessionStatus === 'active' ? 'Ativa' : 
-                                         sessionStatus === 'completed' ? '✅ Finalizada' : 'Aguardando..'}
-                                    </span>
-                                </div>
+                            <div className="weather-chat__session-info">
+                                <span className="weather-chat__session-id">
+                                    {sessionId ? `${sessionId.substring(0, 12)}...` : 'Nova conversa'}
+                                </span>
+                                <span className={`weather-chat__status weather-chat__status--${sessionStatus}`}>
+                                    {sessionStatus === 'active' ? 'Ativa' : 
+                                     sessionStatus === 'completed' ? '✅ Finalizada' : 'Aguardando..'}
+                                </span>
                             </div>
                         </div>
-                        <button 
-                            className="weather-chat__close"
-                            onClick={toggleChat}
-                            title="minimizar Chat"
-                        >
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-square-rounded-minus-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12.5 21c-.18 .002 -.314 0 -.5 0c-7.2 0 -9 -1.8 -9 -9s1.8 -9 9 -9s9 1.8 9 9c0 1.136 -.046 2.138 -.152 3.02" /><path d="M16 19h6" /></svg>
-                        </button>
                     </div>
 
-                    <div className="weather-chat__messages">
+                    {/* Container de mensagens com ref para scroll */}
+                    <div 
+                        ref={messagesContainerRef}
+                        className="weather-chat__messages"
+                    >
                         {messages.map((message, index) => (
                             <div 
                                 key={index} 
@@ -311,6 +574,20 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                         <div ref={messagesEndRef} />
                     </div>
 
+                    {/* Botão para voltar ao final se usuário fez scroll */}
+                    {isUserScrolling && (
+                        <button 
+                            className="weather-chat__scroll-to-bottom"
+                            onClick={() => {
+                                setIsUserScrolling(false);
+                                scrollToBottom(true);
+                            }}
+                            title="Ir para o final"
+                        >
+                            ↓ Nova mensagem
+                        </button>
+                    )}
+
                     {/* Context Info */}
                     {Object.keys(context).length > 0 && (
                         <div className="weather-chat__context">
@@ -326,6 +603,12 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                                     <div className="weather-chat__context-item">
                                         <Calendar size={14} />
                                         <span>{context.date}</span>
+                                    </div>
+                                )}
+                                {context.latitude && context.longitude && (
+                                    <div className="weather-chat__context-item">
+                                        <span>📍</span>
+                                        <span>{parseFloat(context.latitude).toFixed(4)}, {parseFloat(context.longitude).toFixed(4)}</span>
                                     </div>
                                 )}
                             </div>
@@ -349,33 +632,9 @@ const WeatherChat = ({ onWeatherDataReceived, className = '' }) => {
                             </button>
                         </div>
                     )}
-
-                    <form className="weather-chat__form" onSubmit={handleSubmit}>
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder={sessionStatus === 'completed' 
-                                ? "Digite para iniciar nova consulta..." 
-                                : "Digite sua mensagem..."
-                            }
-                            className="weather-chat__input"
-                            disabled={isLoading}
-                        />
-                        <button 
-                            type="submit" 
-                            className="weather-chat__send"
-                            disabled={isLoading || !inputValue.trim()}
-                            title="Enviar mensagem"
-                        >
-                            <Send size={18} />
-                        </button>
-                    </form>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 
