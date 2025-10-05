@@ -187,7 +187,7 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
         } else if (locationName.includes(t('locations.regions.remote'))) {
             return '🗺️';
         } else {
-            return '📍';
+            return '';
         }
     };
 
@@ -215,7 +215,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
 
         let dominantCondition = 'sunny';
         let maxProbability = 0;
-        let temperatureInfo = null;
 
         rawWeatherData.predictions.forEach(prediction => {
             const condition = eventMapping[prediction.event];
@@ -252,14 +251,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                         .reduce((sum, [, value]) => sum + value, 0);
                     conditions.snowy = Math.round(probability);
                     break;
-
-                case 'Temperature':
-                    temperatureInfo = {
-                        cold: (prediction.data.extreme_cold || 0) + (prediction.data.cold || 0),
-                        mild: prediction.data.mild || 0,
-                        warm: (prediction.data.warm || 0) + (prediction.data.hot || 0) + (prediction.data.extreme_hot || 0)
-                    };
-                    break;
             }
 
             if (condition && condition !== 'temperature' && probability > maxProbability) {
@@ -281,24 +272,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
             dominantCondition = 'sunny';
             maxProbability = conditions.sunny;
         }
-
-        const getTemporalInsight = () => {
-            if (conditions.rainy > 70) {
-                return t('weatherVisualization.insights.highRain');
-            } else if (conditions.sunny > 90) {
-                return t('weatherVisualization.insights.exceptional');
-            } else if (conditions.windy > 90) {
-                return t('weatherVisualization.insights.predominantWinds');
-            } else if (conditions.cloudy > 80) {
-                return t('weatherVisualization.insights.typicalClouds');
-            } else if (temperatureInfo?.warm > 60) {
-                return t('weatherVisualization.insights.highTemps');
-            } else if (temperatureInfo?.cold > 40) {
-                return t('weatherVisualization.insights.lowTemps');
-            } else {
-                return t('weatherVisualization.insights.default');
-            }
-        };
 
         const limitations = [];
 
@@ -325,10 +298,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                 probability: Math.round(maxProbability),
                 confidence: calculateConfidence(),
                 dominantCondition,
-                temperatureInfo,
-                temporalAnalysis: {
-                    insight: getTemporalInsight()
-                },
                 limitations
             },
             location: {
@@ -406,9 +375,7 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
     const dominantCondition = weatherData?.prediction?.dominantCondition || 'unknown';
     const location = weatherData?.location;
     const futureDate = weatherData?.futureDate;
-    const temporalInsight = weatherData?.prediction?.temporalAnalysis?.insight;
     const limitations = weatherData?.prediction?.limitations || [];
-    const temperatureInfo = weatherData?.prediction?.temperatureInfo;
 
     const conditionConfig = {
         sunny: {
@@ -545,50 +512,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
         );
     };
 
-    const TemperatureCard = () => {
-        if (!temperatureInfo) return null;
-
-        return (
-            <div className="weather-visualization__temperature-card">
-                <div className="weather-visualization__temperature-header">
-                    <Thermometer className="weather-visualization__temperature-icon" />
-                    <h3 className="weather-visualization__temperature-title">
-                        {t('weatherVisualization.temperature.title')}
-                    </h3>
-                </div>
-                <div className="weather-visualization__temperature-grid">
-                    <div className="weather-visualization__temperature-item weather-visualization__temperature-item--cold">
-                        <span className="weather-visualization__temperature-emoji">🥶</span>
-                        <span className="weather-visualization__temperature-label">
-                            {t('weatherVisualization.temperature.cold')}
-                        </span>
-                        <span className="weather-visualization__temperature-value">
-                            {Math.round(temperatureInfo.cold)}%
-                        </span>
-                    </div>
-                    <div className="weather-visualization__temperature-item weather-visualization__temperature-item--mild">
-                        <span className="weather-visualization__temperature-emoji">😌</span>
-                        <span className="weather-visualization__temperature-label">
-                            {t('weatherVisualization.temperature.mild')}
-                        </span>
-                        <span className="weather-visualization__temperature-value">
-                            {Math.round(temperatureInfo.mild)}%
-                        </span>
-                    </div>
-                    <div className="weather-visualization__temperature-item weather-visualization__temperature-item--warm">
-                        <span className="weather-visualization__temperature-emoji">🔥</span>
-                        <span className="weather-visualization__temperature-label">
-                            {t('weatherVisualization.temperature.warm')}
-                        </span>
-                        <span className="weather-visualization__temperature-value">
-                            {Math.round(temperatureInfo.warm)}%
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     const hasValidData = Object.values(safeConditions).some(val => val > 0);
 
     if (!isVisible) {
@@ -633,12 +556,9 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                                             </p>
                                         ) : (
                                             <p className="weather-visualization__location-text">
-                                                📍 {location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°
+                                                {location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°
                                             </p>
                                         )}
-                                        <p className="weather-visualization__location-coords">
-                                            📍 {location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°
-                                        </p>
                                     </div>
                                 </div>
                             )}
@@ -647,20 +567,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                                     📅 {formatDateForDisplay(futureDate)}
                                 </p>
                             )}
-                        </div>
-                    )}
-
-                    {temporalInsight && (
-                        <div className="weather-visualization__alert weather-visualization__alert--info">
-                            <div className="weather-visualization__alert-content">
-                                <Eye className="weather-visualization__alert-icon" />
-                                <div className="weather-visualization__alert-text">
-                                    <h4 className="weather-visualization__alert-title">
-                                        {t('weatherVisualization.insights.title')}
-                                    </h4>
-                                    <p className="weather-visualization__alert-description">{temporalInsight}</p>
-                                </div>
-                            </div>
                         </div>
                     )}
 
@@ -687,8 +593,6 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                             </div>
                         </div>
                     </div>
-
-                    <TemperatureCard />
 
                     {hasValidData ? (
                         <div className="weather-visualization__conditions-grid">
@@ -721,10 +625,10 @@ const WeatherVisualization = ({ weatherData: rawWeatherData, onClose }) => {
                     {limitations.length > 0 && (
                         <div className="weather-visualization__alert weather-visualization__alert--warning">
                             <div className="weather-visualization__alert-content">
-                                <AlertTriangle className="weather-visualization__alert-icon" />
                                 <div className="weather-visualization__alert-text">
                                     <h4 className="weather-visualization__alert-title">
-                                        {t('weatherVisualization.limitations.title')}
+                                        <AlertTriangle className="weather-visualization__alert-icon" />
+                                        Informaçôes do Sistema
                                     </h4>
                                     <ul className="weather-visualization__limitations-list">
                                         {limitations.map((limitation, index) => (

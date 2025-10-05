@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCondition }, ref) => {
-    const { t, currentLanguage } = useTranslation(); // ✅ ADICIONADO: currentLanguage para formatação de data
+    const { t, currentLanguage } = useTranslation();
 
     const [mapStyle, setMapStyle] = useState('openstreetmap');
     const [showStyleSelector, setShowStyleSelector] = useState(false);
@@ -391,7 +391,7 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
 
         const today = new Date();
         const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+        const maxDate = new Date(today.getFullYear() + 30, today.getMonth(), today.getDate());
 
         if (isNaN(selectedDateObj.getTime())) {
             setDateError(t('mapSelector.steps.date.errors.invalidDate'));
@@ -556,19 +556,28 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
 
     const getMaxDate = () => {
         const today = new Date();
-        const maxDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+        const maxDate = new Date(today.getFullYear() + 30, today.getMonth(), today.getDate()); // Alterado para +30
         const year = maxDate.getFullYear();
         const month = String(maxDate.getMonth() + 1).padStart(2, '0');
         const day = String(maxDate.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
 
-    const getSuggestedDate = () => {
+    const getSixMonthsDate = () => {
         const today = new Date();
-        const suggested = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
-        const year = suggested.getFullYear();
-        const month = String(suggested.getMonth() + 1).padStart(2, '0');
-        const day = String(suggested.getDate()).padStart(2, '0');
+        const sixMonths = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate());
+        const year = sixMonths.getFullYear();
+        const month = String(sixMonths.getMonth() + 1).padStart(2, '0');
+        const day = String(sixMonths.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const getTwoYearsDate = () => {
+        const today = new Date();
+        const twoYears = new Date(today.getFullYear() + 2, today.getMonth(), today.getDate());
+        const year = twoYears.getFullYear();
+        const month = String(twoYears.getMonth() + 1).padStart(2, '0');
+        const day = String(twoYears.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
 
@@ -716,9 +725,6 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
                                         {t('mapSelector.steps.date.title')}
                                     </div>
                                     <div className="map-selector__step-subtitle">
-                                        <span className="map-selector__location-icon">
-                                            {getLocationIcon()}
-                                        </span>
                                         <span className="map-selector__location-text">
                                             {isGeocodingLocation ?
                                                 t('weatherVisualization.location.identifying') :
@@ -767,31 +773,31 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
                                             <button
                                                 className="map-selector__date-suggestion"
                                                 onClick={() => {
-                                                    const today = getMinDate();
-                                                    setSelectedDate(today);
-                                                    validateDate(today);
+                                                    const sixMonths = getSixMonthsDate();
+                                                    setSelectedDate(sixMonths);
+                                                    validateDate(sixMonths);
                                                 }}
                                             >
                                                 <span className="map-selector__date-suggestion-label">
-                                                    {t('mapSelector.steps.date.suggestions.today')}
+                                                    {t('mapSelector.steps.date.suggestions.sixMonths', 'Em 6 meses')}
                                                 </span>
                                                 <span className="map-selector__date-suggestion-date">
-                                                    {new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'pt-BR')}
+                                                    {new Date(getSixMonthsDate()).toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'pt-BR')}
                                                 </span>
                                             </button>
                                             <button
                                                 className="map-selector__date-suggestion"
                                                 onClick={() => {
-                                                    const suggested = getSuggestedDate();
-                                                    setSelectedDate(suggested);
-                                                    validateDate(suggested);
+                                                    const twoYears = getTwoYearsDate();
+                                                    setSelectedDate(twoYears);
+                                                    validateDate(twoYears);
                                                 }}
                                             >
                                                 <span className="map-selector__date-suggestion-label">
-                                                    {t('mapSelector.steps.date.suggestions.nextWeek')}
+                                                    {t('mapSelector.steps.date.suggestions.twoYears', 'Em 2 anos')}
                                                 </span>
                                                 <span className="map-selector__date-suggestion-date">
-                                                    {new Date(getSuggestedDate()).toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'pt-BR')}
+                                                    {new Date(getTwoYearsDate()).toLocaleDateString(currentLanguage === 'en' ? 'en-US' : 'pt-BR')}
                                                 </span>
                                             </button>
                                         </div>

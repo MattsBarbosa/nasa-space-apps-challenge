@@ -248,6 +248,7 @@ const ApiStatus = () => {
                                                     <a
                                                         href={component.url}
 
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="api-status__component-link"
                                                         title={currentLanguage === 'en'
