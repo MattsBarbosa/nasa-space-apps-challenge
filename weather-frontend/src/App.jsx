@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import MapSelector from "./components/MapSelector.jsx";
+import WeatherChat from './components/WeatherChat.jsx';
 import WeatherVisualization from "./components/WeatherVisualization.jsx";
 import LanguageSelector from "./components/LanguageSelector.jsx";
 import ReactMarkdown from "react-markdown";
@@ -214,6 +215,38 @@ const AppContent = () => {
             setError("Erro inesperado: " + err.message);
             console.error("Erro ao buscar dados meteorológicos:", err);
         }
+    };
+
+    const handleChatWeatherData = (chatWeatherData) => {
+        // Converter dados do chat para o formato esperado pela visualização
+        const convertedData = {
+            request: {
+                latitude: chatWeatherData.coordinates.lat,
+                longitude: chatWeatherData.coordinates.lon,
+                date: chatWeatherData.date,
+                location_name: chatWeatherData.location
+            },
+            analysis: {
+                temperature: {
+                    value: chatWeatherData.temperature,
+                    unit: "°C",
+                    confidence: "high"
+                },
+                probabilities: {
+                    sunny: chatWeatherData.probabilities.sun || 0,
+                    cloudy: chatWeatherData.probabilities.clouds || 0,
+                    rainy: chatWeatherData.probabilities.rain || 0
+                }
+            },
+            metadata: {
+                data_source: "NASA Historical Analysis via Chat",
+                processing_time: "AI Generated",
+                confidence_level: "Based on historical patterns"
+            }
+        };
+
+        setWeatherData(convertedData);
+        setError(null); // Limpar qualquer erro anterior
     };
 
     const handleChatSubmit = async (e) => {
@@ -443,6 +476,9 @@ const AppContent = () => {
                     )}
                 </div>
             </main>
+
+            {/* Weather Chat */}
+            <WeatherChat onWeatherDataReceived={handleChatWeatherData} />
 
             {/* Footer */}
             <footer className="app__footer">

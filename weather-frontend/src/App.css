@@ -1949,7 +1949,6 @@ textarea {
 
 .language-selector__flag {
     font-size: 18px;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .language-selector__name {
@@ -2742,10 +2741,10 @@ textarea {
 .map-selector__map-container .leaflet-control-container>div {
     width: auto;
     height: auto;
-    left: auto;
+    left: 14px;
     top: auto;
     bottom: 14px;
-    right: 14px;
+    right: auto;
 }
 
 .map-selector__map-container .leaflet-control-container .leaflet-control-zoom {
@@ -3403,4 +3402,551 @@ textarea {
 .language-selector,
 .map-style-selector {
     contain: layout style;
+}
+
+/* CHAT */
+.weather-chat__toggle {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  background: #336dcc;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.weather-chat__toggle:hover {
+  transform: scale(1.1);
+  background: #285cb1;
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+}
+
+.weather-chat__toggle--active {
+  background: #ff6f3a;
+  display: none;
+}
+.weather-chat__toggle--active:hover {
+  background: #ee5a24;
+}
+
+.weather-chat__notification {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #ee5a24;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.weather-chat__panel {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  width: 374px;
+  height: 480px;
+  background: rgba(255, 255, 255, 95%);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.weather-chat__header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weather-chat__header {
+  background: #336dcc;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weather-chat__header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weather-chat__header-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.weather-chat__session-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weather-chat__session-id {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.weather-chat__status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.weather-chat__status--waiting {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.5;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+.weather-chat__status--active {
+  color: #3df467;
+}
+
+.weather-chat__status--completed {
+  color: #ffd146;
+}
+
+.weather-chat__close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  transition: all 0.2s ease;
+}
+
+.weather-chat__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.weather-chat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.2) inset;
+}
+
+.weather-chat__messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.weather-chat__messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.weather-chat__messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.weather-chat__messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.weather-chat__message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.weather-chat__message--user {
+  flex-direction: row-reverse;
+}
+
+.weather-chat__message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.weather-chat__message--user .weather-chat__message-avatar {
+  background: #336dcc;
+  color: white;
+}
+
+.weather-chat__message--assistant .weather-chat__message-avatar {
+  background: #f1f1f1;
+  color: #8a8a8a;
+}
+
+.weather-chat__message-content {
+  max-width: 75%;
+}
+
+.weather-chat__message--user .weather-chat__message-content {
+  text-align: right;
+}
+
+.weather-chat__message-text {
+  background: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.weather-chat__message--user .weather-chat__message-text {
+  background: #336dcc;
+  color: white;
+  width: fit-content;
+  border-radius: 14px 14px 2px 14px;
+}
+
+.weather-chat__message--assistant .chat-message-list-item::marker {
+  display: none;
+}
+
+.weather-chat__message--assistant li + br {
+  display: none;
+}
+
+.weather-chat__message--assistant .chat-message-list-item {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.weather-chat__message--assistant .chat-message-list-item::marker {
+  content: none;
+}
+
+.weather-chat__message--assistant .weather-chat__message-text {
+  background: #f1f1f1;
+  color: #2d3436;
+  border-radius: 14px 14px 14px 2px;
+}
+
+.weather-chat__message-heading {
+  margin: 8px 0 4px 0;
+  color: #2d3436;
+  font-weight: 600;
+}
+
+.weather-chat__message--user .weather-chat__message-heading {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.weather-chat__message-list-item {
+  margin: 4px 0;
+  padding-left: 8px;
+}
+
+.weather-chat__message-time {
+  font-size: 11px;
+  color: #636e72;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+.weather-chat__message--user .weather-chat__message-time {
+  text-align: right;
+}
+
+.weather-chat__typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #f1f1f1;
+  border-radius: 14px 14px 14px 2px;
+  width: fit-content;
+}
+
+.weather-chat__typing-dot {
+  width: 8px;
+  height: 8px;
+  background: #285cb1;
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.weather-chat__typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.weather-chat__typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.weather-chat__context {
+  padding: 12px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(116, 185, 255, 0.1) 0%,
+    rgba(9, 132, 227, 0.1) 100%
+  );
+  border-top: 1px solid #e9ecef;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.weather-chat__context-title {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weather-chat__context-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.weather-chat__context-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(116, 185, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #0984e3;
+  font-weight: 500;
+}
+
+.weather-chat__form {
+  display: flex;
+  align-items: center;
+
+  border-radius: 0 0 14px 14px;
+  background: rgba(255, 255, 255, 95%);
+  backdrop-filter: blur(10px);
+}
+
+.weather-chat__input {
+  background-color: rgb(245 245 245);
+  border-radius: 0 0 0 14px;
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+  padding: 8px 44px 8px 14px;
+  color: #2a2a2a;
+  transition: all 0.3s ease;
+}
+
+.weather-chat__input:disabled {
+  background: #e9ecef;
+  cursor: not-allowed;
+}
+
+.weather-chat__send {
+  width: 44px;
+  height: 44px;
+  background: #336dcc;
+  border: none;
+  border-radius: 0 0 14px 0;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.weather-chat__send:hover:not(:disabled) {
+  background: #285cb1;
+}
+
+.weather-chat__send:disabled {
+  background: #ced4da;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  .weather-chat__message-content {
+    max-width: 75%;
+  }
+}
+
+@media (max-width: 768px) {
+  .weather-chat__panel {
+    height: 550px;
+    max-width: 360px;
+    width: calc(100% - 28px);
+    height: 86dvh;
+    bottom: 14px;
+  }
+}
+
+.weather-chat__new-conversation {
+  border-top: 1px solid #f1f1f1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  z-index: 2;
+  position: absolute;
+  background: #fff;
+  bottom: 0;
+  border-radius: 0 0 14px 14px;
+}
+
+.weather-chat__completion-message {
+  margin: 0;
+  text-align: center;
+  max-width: 280px;
+  font-size: 12px;
+  color: #28a745;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.weather-chat__new-conversation-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 150px;
+  gap: 8px;
+  background: #218838;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.weather-chat__new-conversation-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.weather-chat__new-conversation-btn:active {
+  transform: translateY(0);
+}
+
+/* Highlight para sessão completed */
+.weather-chat__status--completed {
+  color: #fff;
+}
+
+@keyframes completedPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Estado especial para sessão completed */
+.weather-chat__panel[data-status="completed"] .weather-chat__input {
+  border-color: #28a745;
+  background: rgba(40, 167, 69, 0.05);
+}
+
+.weather-chat__panel[data-status="completed"] .weather-chat__input:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
 }
