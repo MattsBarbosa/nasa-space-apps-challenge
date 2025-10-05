@@ -1,25 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Satellite, Activity, Zap } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { CheckCircle, XCircle, AlertCircle, Wifi, WifiOff, Satellite, Activity, Zap, RefreshCw, ExternalLink, Clock } from 'lucide-react';
+import { useTranslation } from '../i18n/useTranslation.jsx';
 import weatherApi from '../services/weatherApi';
 
 const ApiStatus = () => {
+    const { t, currentLanguage } = useTranslation();
+
     const [status, setStatus] = useState({ loading: true });
     const [isExpanded, setIsExpanded] = useState(false);
+    const [lastCheck, setLastCheck] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [autoRefresh, setAutoRefresh] = useState(true);
+
+    const checkApiHealth = useCallback(async (manual = false) => {
+        if (manual) {
+            setIsRefreshing(true);
+        }
+
+        try {
+            const health = await weatherApi.getApiHealth();
+            setStatus({ loading: false, ...health });
+            setLastCheck(new Date());
+        } catch (error) {
+            setStatus({
+                loading: false,
+                status: 'unreachable',
+                error: error.message,
+                components: {}
+            });
+            setLastCheck(new Date());
+        } finally {
+            if (manual) {
+                setIsRefreshing(false);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         checkApiHealth();
-        // Verificar a cada 30 segundos
-        const interval = setInterval(checkApiHealth, 30000);
-        return () => clearInterval(interval);
-    }, []);
 
-    const checkApiHealth = async () => {
-        const health = await weatherApi.getApiHealth();
-        setStatus({ loading: false, ...health });
+        if (autoRefresh) {
+            const interval = setInterval(() => checkApiHealth(), 30000);
+            return () => clearInterval(interval);
+        }
+    }, [checkApiHealth, autoRefresh]);
+
+    const handleManualRefresh = () => {
+        checkApiHealth(true);
+    };
+
+    const toggleAutoRefresh = () => {
+        setAutoRefresh(!autoRefresh);
     };
 
     const getStatusIcon = () => {
-        if (status.loading) {
+        if (status.loading || isRefreshing) {
             return (
                 <div className="api-status__loading-icon">
                     <div className="api-status__loading-spinner" />
@@ -28,29 +63,119 @@ const ApiStatus = () => {
             );
         }
 
-        if (status.status === 'healthy') return <CheckCircle className="api-status__icon api-status__icon--healthy" />;
-        if (status.status === 'degraded') return <AlertCircle className="api-status__icon api-status__icon--warning" />;
-        if (status.status === 'unreachable') return <WifiOff className="api-status__icon api-status__icon--error" />;
-        return <XCircle className="api-status__icon api-status__icon--error" />;
+        switch (status.status) {
+            case 'healthy':
+                return <CheckCircle className="api-status__icon api-status__icon--healthy" />;
+            case 'degraded':
+                return <AlertCircle className="api-status__icon api-status__icon--warning" />;
+            case 'unreachable':
+                return <WifiOff className="api-status__icon api-status__icon--error" />;
+            default:
+                return <XCircle className="api-status__icon api-status__icon--error" />;
+        }
     };
 
     const getStatusText = () => {
-        if (status.loading) return 'Verificando Sistema...';
-        if (status.status === 'healthy') return 'Sistema Online';
-        if (status.status === 'degraded') return 'Sistema Parcial';
-        if (status.status === 'unreachable') return 'Sistema Offline';
-        return 'Erro no Sistema';
+        if (status.loading) return t('apiStatus.checking', 'Verificando Sistema...');
+        if (isRefreshing) return t('apiStatus.refreshing', 'Atualizando...');
+
+        switch (status.status) {
+            case 'healthy':
+                return t('apiStatus.online', 'Sistema Online');
+            case 'degraded':
+                return t('apiStatus.partial', 'Sistema Parcial');
+            case 'unreachable':
+                return t('apiStatus.offline', 'Sistema Offline');
+            default:
+                return t('apiStatus.error', 'Erro no Sistema');
+        }
     };
 
     const getStatusClass = () => {
-        if (status.status === 'healthy') return 'api-status--healthy';
-        if (status.status === 'degraded') return 'api-status--warning';
-        return 'api-status--error';
+        switch (status.status) {
+            case 'healthy':
+                return 'api-status--healthy';
+            case 'degraded':
+                return 'api-status--warning';
+            default:
+                return 'api-status--error';
+        }
     };
+
+    const getComponentStatusColor = (componentStatus) => {
+        switch (componentStatus) {
+            case 'connected':
+            case 'operational':
+                return 'success';
+            case 'degraded':
+            case 'partial':
+                return 'warning';
+            default:
+                return 'error';
+        }
+    };
+
+    const getComponentStatusText = (componentStatus) => {
+        switch (componentStatus) {
+            case 'connected':
+                return t('apiStatus.components.connected', 'Conectado');
+            case 'degraded':
+                return t('apiStatus.components.degraded', 'Degradado');
+            case 'unreachable':
+                return t('apiStatus.components.unreachable', 'Indisponível');
+            default:
+                return t('apiStatus.components.unknown', 'Desconhecido');
+        }
+    };
+
+    const formatLastCheck = () => {
+        if (!lastCheck) return t('apiStatus.never', 'Nunca');
+
+        const now = new Date();
+        const diff = Math.floor((now - lastCheck) / 1000);
+
+        if (diff < 60) {
+            return currentLanguage === 'en'
+                ? `${diff}s ago`
+                : `${diff}s atrás`;
+        }
+        if (diff < 3600) {
+            const minutes = Math.floor(diff / 60);
+            return currentLanguage === 'en'
+                ? `${minutes}min ago`
+                : `${minutes}min atrás`;
+        }
+
+        const locale = currentLanguage === 'en' ? 'en-US' : 'pt-BR';
+        return lastCheck.toLocaleTimeString(locale);
+    };
+
+    const components = [
+        {
+            key: 'nasa_power',
+            name: 'NASA POWER',
+            description: t('apiStatus.components.nasaPower.description', 'Dados meteorológicos históricos'),
+            icon: Satellite,
+            url: 'https://power.larc.nasa.gov/'
+        },
+        {
+            key: 'earthdata_cmr',
+            name: 'NASA Earthdata',
+            description: t('apiStatus.components.earthdata.description', 'Catálogo de dados científicos'),
+            icon: Satellite,
+            url: 'https://earthdata.nasa.gov/'
+        },
+        {
+            key: 'giovanni',
+            name: 'NASA Giovanni',
+            description: t('apiStatus.components.giovanni.description', 'Visualização de dados'),
+            icon: Satellite,
+            url: 'https://giovanni.gsfc.nasa.gov/'
+        }
+    ];
 
     return (
         <div className="api-status">
-            {/* Status Principal */}
             <div
                 className={`api-status__main ${getStatusClass()}`}
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -61,151 +186,171 @@ const ApiStatus = () => {
                         <span className="api-status__main-text">
                             {getStatusText()}
                         </span>
-                        {status.status === 'healthy' && (
-                            <div className="api-status__main-status">
-                                <div className="api-status__main-dot"></div>
-                                <span className="api-status__main-status-text">Conectado</span>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Painel Expandido */}
             {isExpanded && (
                 <div className="api-status__panel">
-
-                    {/* Header do painel expandido */}
                     <div className="api-status__panel-header">
-                        <span className="api-status__panel-header-text">Status dos Componentes</span>
+                        <div className="api-status__panel-header-content">
+                            <span className="api-status__panel-header-text">
+                                🛰️ {t('apiStatus.componentsTitle', 'Status dos Componentes NASA')}
+                            </span>
+                            <div className="api-status__panel-controls">
+                                <button
+                                    className={`api-status__auto-refresh ${autoRefresh ? 'api-status__auto-refresh--active' : ''}`}
+                                    onClick={toggleAutoRefresh}
+                                    title={autoRefresh ?
+                                        t('apiStatus.disableAutoRefresh', 'Desativar atualização automática') :
+                                        t('apiStatus.enableAutoRefresh', 'Ativar atualização automática')
+                                    }
+                                >
+                                    <Clock size={14} />
+                                    <span>
+                                        {autoRefresh ?
+                                            t('apiStatus.auto', 'Auto') :
+                                            t('apiStatus.manual', 'Manual')
+                                        }
+                                    </span>
+                                </button>
+                                <button
+                                    className="api-status__refresh-button"
+                                    onClick={handleManualRefresh}
+                                    disabled={isRefreshing}
+                                    title={t('apiStatus.refreshStatus', 'Atualizar status')}
+                                >
+                                    <RefreshCw
+                                        size={14}
+                                        className={isRefreshing ? 'api-status__refresh-spinning' : ''}
+                                    />
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Componentes do sistema */}
-                    {status.components && (
+                    {status.components && Object.keys(status.components).length > 0 ? (
                         <div className="api-status__components">
-                            {/* NASA API */}
-                            <div className="api-status__component">
-                                <div className="api-status__component-info">
-                                    <div className="api-status__component-icon api-status__component-icon--nasa">
-                                        <Satellite className="api-status__component-icon-svg" />
-                                    </div>
-                                    <div className="api-status__component-details">
-                                        <span className="api-status__component-name">NASA API</span>
-                                        <div className="api-status__component-desc">Dados meteorológicos</div>
-                                    </div>
-                                </div>
+                            {components.map((component) => {
+                                const componentStatus = status.components[component.key];
+                                const statusColor = getComponentStatusColor(componentStatus?.status);
+                                const Icon = component.icon;
 
-                                <div className="api-status__component-status">
-                                    {status.components.nasa_api?.status === 'connected' ? (
-                                        <>
-                                            <div className="api-status__component-dot api-status__component-dot--success"></div>
-                                            <span className="api-status__component-status-text api-status__component-status-text--success">Conectado</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="api-status__component-dot api-status__component-dot--error"></div>
-                                            <span className="api-status__component-status-text api-status__component-status-text--error">
-                                                {status.components.nasa_api?.status || 'Desconhecido'}
+                                return (
+                                    <div key={component.key} className="api-status__component">
+                                        <div className="api-status__component-info">
+                                            <div className={`api-status__component-icon api-status__component-icon--${statusColor}`}>
+                                                <Icon className="api-status__component-icon-svg" />
+                                            </div>
+                                            <div className="api-status__component-details">
+                                                <div className="api-status__component-name-row">
+                                                    <span className="api-status__component-name">{component.name}</span>
+                                                    <a
+                                                        href={component.url}
+
+                                                        rel="noopener noreferrer"
+                                                        className="api-status__component-link"
+                                                        title={currentLanguage === 'en'
+                                                            ? `Open ${component.name}`
+                                                            : `Abrir ${component.name}`
+                                                        }
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <ExternalLink size={12} />
+                                                    </a>
+                                                </div>
+                                                <div className="api-status__component-desc">{component.description}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="api-status__component-status">
+                                            <div className={`api-status__component-dot api-status__component-dot--${statusColor}`}></div>
+                                            <span className={`api-status__component-status-text api-status__component-status-text--${statusColor}`}>
+                                                {getComponentStatusText(componentStatus?.status)}
                                             </span>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Sistema de Previsão */}
-                            <div className="api-status__component">
-                                <div className="api-status__component-info">
-                                    <div className="api-status__component-icon api-status__component-icon--ai">
-                                        <Activity className="api-status__component-icon-svg" />
+                                            {componentStatus?.responseTime && (
+                                                <span className="api-status__component-latency">
+                                                    {componentStatus.responseTime}ms
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="api-status__component-details">
-                                        <span className="api-status__component-name">Algoritmo IA</span>
-                                        <div className="api-status__component-desc">Processamento de dados</div>
-                                    </div>
-                                </div>
-
-                                <div className="api-status__component-status">
-                                    <div className="api-status__component-dot api-status__component-dot--success"></div>
-                                    <span className="api-status__component-status-text api-status__component-status-text--success">Ativo</span>
-                                </div>
-                            </div>
-
-                            {/* Conectividade */}
-                            <div className="api-status__component">
-                                <div className="api-status__component-info">
-                                    <div className="api-status__component-icon api-status__component-icon--network">
-                                        <Wifi className="api-status__component-icon-svg" />
-                                    </div>
-                                    <div className="api-status__component-details">
-                                        <span className="api-status__component-name">Conectividade</span>
-                                        <div className="api-status__component-desc">Rede e latência</div>
-                                    </div>
-                                </div>
-
-                                <div className="api-status__component-status">
-                                    <div className="api-status__component-dot api-status__component-dot--success"></div>
-                                    <span className="api-status__component-status-text api-status__component-status-text--success">Estável</span>
-                                </div>
-                            </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="api-status__no-components">
+                            <AlertCircle className="api-status__no-components-icon" />
+                            <span className="api-status__no-components-text">
+                                {t('apiStatus.noComponents', 'Nenhum componente disponível')}
+                            </span>
                         </div>
                     )}
 
-                    {/* Métricas de Performance */}
                     <div className="api-status__metrics">
                         <div className="api-status__metric">
                             <div className="api-status__metric-header">
                                 <Zap className="api-status__metric-icon" />
-                                <span className="api-status__metric-label">Latência</span>
+                                <span className="api-status__metric-label">
+                                    {t('apiStatus.metrics.averageLatency', 'Latência Média')}
+                                </span>
                             </div>
                             <div className="api-status__metric-value">
-                                {status.responseTime ? `${status.responseTime}ms` : '< 100ms'}
+                                {status.responseTime ? `${status.responseTime}ms` :
+                                    status.components ?
+                                        `${Math.round(Object.values(status.components)
+                                            .filter(c => c.responseTime)
+                                            .reduce((acc, c) => acc + c.responseTime, 0) /
+                                            Object.values(status.components).filter(c => c.responseTime).length) || 0}ms` :
+                                        '< 100ms'}
                             </div>
                         </div>
 
                         <div className="api-status__metric">
                             <div className="api-status__metric-header">
                                 <Activity className="api-status__metric-icon" />
-                                <span className="api-status__metric-label">Uptime</span>
+                                <span className="api-status__metric-label">
+                                    {t('apiStatus.metrics.availability', 'Disponibilidade')}
+                                </span>
                             </div>
-                            <div className="api-status__metric-value">99.9%</div>
+                            <div className="api-status__metric-value">
+                                {status.components ?
+                                    `${Math.round((Object.values(status.components).filter(c => c.status === 'connected').length / Object.keys(status.components).length) * 100)}%` :
+                                    status.status === 'healthy' ? '100%' : '0%'}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Timestamp da última verificação */}
+                    {status.error && (
+                        <div className="api-status__error-details">
+                            <div className="api-status__error-header">
+                                <AlertCircle className="api-status__error-icon" />
+                                <span className="api-status__error-title">
+                                    {t('apiStatus.errorDetails', 'Detalhes do Erro')}
+                                </span>
+                            </div>
+                            <div className="api-status__error-message">
+                                {status.error}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="api-status__timestamp">
                         <div className="api-status__timestamp-content">
                             <div className="api-status__timestamp-dot"></div>
                             <span className="api-status__timestamp-text">
-                                Última verificação: {new Date().toLocaleTimeString('pt-BR')}
+                                {t('apiStatus.lastCheck', 'Última verificação')}: {formatLastCheck()}
                             </span>
                             <div className="api-status__timestamp-dot"></div>
                         </div>
                     </div>
-
-                    {/* Botão de atualização manual */}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            checkApiHealth();
-                        }}
-                        className="api-status__refresh-btn"
-                        disabled={status.loading}
-                    >
-                        <div className="api-status__refresh-btn-content">
-                            {status.loading ? (
-                                <div className="api-status__refresh-btn-spinner" />
-                            ) : (
-                                <Activity className="api-status__refresh-btn-icon" />
-                            )}
-                            <span>{status.loading ? 'Verificando...' : 'Atualizar Status'}</span>
-                        </div>
-                    </button>
                 </div>
             )}
 
-            {/* Indicador de notificação para problemas */}
-            {status.status !== 'healthy' && status.status !== 'loading' && (
-                <div className="api-status__notification"></div>
+            {status.status !== 'healthy' && status.status !== 'loading' && !isExpanded && (
+                <div className="api-status__notification">
+                    <div className="api-status__notification-pulse"></div>
+                </div>
             )}
         </div>
     );
