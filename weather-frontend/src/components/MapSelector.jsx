@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import { MapPin, Calendar, Search, Loader, Navigation, Clock, AlertTriangle, Waves, Layers } from 'lucide-react'; // ✅ ADICIONADO: Layers
+import { MapPin, Calendar, Search, Loader, Navigation, Clock, AlertTriangle, Waves, Layers } from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation.jsx';
+import WeatherChat from './WeatherChat'; // Ajuste o caminho conforme sua estrutura
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -17,6 +18,9 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
 
     const [mapStyle, setMapStyle] = useState('openstreetmap');
     const [showStyleSelector, setShowStyleSelector] = useState(false);
+    const [isChatInputFocused, setIsChatInputFocused] = useState(false);
+    const [chatWeatherData, setChatWeatherData] = useState(null);
+    const [isUpdatingFromChat, setIsUpdatingFromChat] = useState(false);
 
     const [position, setPosition] = useState(null);
     const [selectedLocation, setSelectedLocation] = useState(null);
@@ -95,6 +99,118 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
             ? weatherThemes[weatherCondition]
             : null;
     };
+
+    // Handlers para o chat
+    const handleChatInputFocus = () => {
+        setIsChatInputFocused(true);
+    };
+
+    const handleChatInputBlur = () => {
+        // Pequeno delay para permitir cliques em outros elementos
+        setTimeout(() => {
+            setIsChatInputFocused(false);
+        }, 150);
+    };
+
+    const handleWeatherDataFromChat = async (weatherData) => {
+    console.log('Dados recebidos do chat:', weatherData);
+    setChatWeatherData(weatherData);
+    
+    // Se tiver coordenadas, usar diretamente
+    if (weatherData.coordinates && weatherData.coordinates.lat && weatherData.coordinates.lon) {
+        setIsUpdatingFromChat(true);
+        
+        const { lat, lon } = weatherData.coordinates;
+        
+        console.log('Movendo pin para:', lat, lon);
+        
+        // Atualizar posição do pin no mapa
+        setPosition([lat, lon]);
+        setSelectedLocation({ lat, lon });
+        
+        // Definir nome da localização
+        let locationName = weatherData.location;
+        
+        if (!locationName || locationName === 'Local não identificado') {
+            locationName = await reverseGeocode(lat, lon);
+        }
+        
+        setLocationName(locationName);
+        setSearchQuery(locationName);
+        setSearchResults([]);
+        
+        // Se tem data, configurar também
+        if (weatherData.date) {
+            setSelectedDate(weatherData.date);
+            validateDate(weatherData.date);
+            setStep('date');
+        } else {
+            setStep('date');
+        }
+        
+        setIsUpdatingFromChat(false);
+        
+        console.log('Pin movido com sucesso para:', lat, lon);
+        
+        // Opcional: Focar no input de data após definir localização
+        setTimeout(() => {
+            if (dateInputRef.current && weatherData.date) {
+                dateInputRef.current.focus();
+            }
+        }, 500);
+    } 
+    // Se não tiver coordenadas mas tiver localização, tentar geocodificar
+    else if (weatherData.location && weatherData.location !== 'Local não identificado') {
+        console.log('Tentando geocodificar localização:', weatherData.location);
+        setIsUpdatingFromChat(true);
+        
+        try {
+            // Tentar geocodificar a localização
+            const acceptLanguage = currentLanguage === 'en' ? 'en,en-US' : 'pt-BR,pt,en';
+            
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(weatherData.location)}&limit=1&addressdetails=1&accept-language=${acceptLanguage}`
+            );
+            
+            const data = await response.json();
+            
+            if (data && data.length > 0) {
+                const result = data[0];
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                
+                console.log('Geocodificação bem-sucedida:', lat, lon);
+                
+                // Atualizar posição do pin no mapa
+                setPosition([lat, lon]);
+                setSelectedLocation({ lat, lon });
+                setLocationName(weatherData.location);
+                setSearchQuery(weatherData.location);
+                setSearchResults([]);
+                
+                // Se tem data, configurar também
+                if (weatherData.date) {
+                    setSelectedDate(weatherData.date);
+                    validateDate(weatherData.date);
+                    setStep('date');
+                } else {
+                    setStep('date');
+                }
+                
+                console.log('Pin movido via geocodificação para:', lat, lon);
+            } else {
+                console.log('Geocodificação falhou para:', weatherData.location);
+            }
+        } catch (error) {
+            console.error('Erro na geocodificação:', error);
+        } finally {
+            setIsUpdatingFromChat(false);
+        }
+    } else {
+        console.log('Nem coordenadas nem localização válida encontradas:', weatherData);
+        setIsUpdatingFromChat(false);
+    }
+};
 
     useEffect(() => {
         const mapContainer = document.querySelector('.map-selector__map-container');
@@ -348,6 +464,8 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
         setDateError('');
         setIsValidDate(false);
         setIsGeocodingLocation(false);
+        setChatWeatherData(null);
+        setIsUpdatingFromChat(false);
     };
 
     const resetFormOnly = () => {
@@ -556,7 +674,7 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
 
     const getMaxDate = () => {
         const today = new Date();
-        const maxDate = new Date(today.getFullYear() + 30, today.getMonth(), today.getDate()); // Alterado para +30
+        const maxDate = new Date(today.getFullYear() + 30, today.getMonth(), today.getDate());
         const year = maxDate.getFullYear();
         const month = String(maxDate.getMonth() + 1).padStart(2, '0');
         const day = String(maxDate.getDate()).padStart(2, '0');
@@ -664,7 +782,23 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
     return (
         <div className="map-selector">
             <div className="map-selector__header">
-                <div className="map-selector__header-form">
+                {/* Chat Input sempre visível no topo */}
+                <div className="map-selector__chat">
+                    <WeatherChat 
+                        onWeatherDataReceived={handleWeatherDataFromChat}
+                        className="map-selector__weather-chat"
+                        onInputFocus={handleChatInputFocus}
+                        onInputBlur={handleChatInputBlur}
+                        isInputFocused={isChatInputFocused}
+                    />
+                </div>
+                
+                {/* Form só aparece quando chat input não está focado */}
+                <div 
+                    className={`map-selector__header-form ${
+                        isChatInputFocused ? 'map-selector__header-form--hidden' : ''
+                    }`}
+                >
                     {step === 'location' && (
                         <div className="map-selector__step">
                             <div className="map-selector__step-header">
@@ -905,12 +1039,21 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
             )}
 
             <div className="map-selector__map-container">
+                {isUpdatingFromChat && (
+                    <div className="map-selector__updating-overlay">
+                        <div className="map-selector__updating-content">
+                            <Loader className="map-selector__updating-spinner" size={24} />
+                            <span>Atualizando localização...</span>
+                        </div>
+                    </div>
+                )}
+                
                 {/* <MapStyleSelector /> */}
                 <MapContainer
                     center={position || [-14.2350, -51.9253]}
-                    zoom={position ? 10 : 4}
+                    zoom={position ? 12 : 4}
                     className="map-selector__map"
-                    key={`${position ? `${position[0]}-${position[1]}` : 'default'}-${mapStyle}`}
+                    key={`${position ? `${position[0]}-${position[1]}` : 'default'}-${mapStyle}-${isUpdatingFromChat ? 'updating' : 'static'}`}
                     minZoom={2}
                     maxZoom={getCurrentMapStyle().maxZoom || 18}
                     maxBounds={[[-90, -180], [90, 180]]}
@@ -948,7 +1091,10 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
 
                     <MapEvents />
                     {position && (
-                        <Marker position={position}>
+                        <Marker 
+                            position={position}
+                            className={isUpdatingFromChat ? 'marker-updating' : ''}
+                        >
                             <Popup>
                                 <div className="map-selector__popup">
                                     <div className="map-selector__popup-title">
@@ -960,6 +1106,11 @@ const MapSelector = forwardRef(({ onLocationSubmit, loading, onReset, weatherCon
                                     <div className="map-selector__popup-coords">
                                         {position[0].toFixed(4)}, {position[1].toFixed(4)}
                                     </div>
+                                    {chatWeatherData && (
+                                        <div className="map-selector__popup-source">
+                                            🤖 Localização do Chat
+                                        </div>
+                                    )}
                                 </div>
                             </Popup>
                         </Marker>
