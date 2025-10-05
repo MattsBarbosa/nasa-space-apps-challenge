@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://nasa-weather-predi
 class WeatherApi {
     async predict(lat, lon, date) {
         try {
-            const response = await fetch(`${API_BASE_URL}predict?lat=${lat}&lon=${lon}&date=${date}`);
+            const response = await fetch(`${API_BASE_URL}/predict?lat=${lat}&lon=${lon}&date=${date}`);
 
             if (!response.ok) {
                 throw new Error(`API Error: ${response.status}`);
@@ -26,7 +26,7 @@ class WeatherApi {
 
     async getCurrentWeather(lat, lon) {
         try {
-            const response = await fetch(`${API_BASE_URL}current?lat=${lat}&lon=${lon}`);
+            const response = await fetch(`${API_BASE_URL}/current?lat=${lat}&lon=${lon}`);
 
             if (!response.ok) {
                 throw new Error(`Current Weather API Error: ${response.status}`);
@@ -42,7 +42,7 @@ class WeatherApi {
 
     async getApiHealth() {
         try {
-            const response = await fetch(`${API_BASE_URL}health`);
+            const response = await fetch(`${API_BASE_URL}/health`);
             let responseData = await response.json()
             return await responseData
         } catch (error) {
