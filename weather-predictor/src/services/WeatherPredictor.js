@@ -3,8 +3,8 @@ import EarthdataClient from "./EarthdataClient.js";
 
 class WeatherPredictor {
     constructor(env) {
-        this.nasaClient = new NASAApiClient()
-        this.earthdataClient = new EarthdataClient()
+        this.nasaClient = new NASAApiClient();
+        this.earthdataClient = new EarthdataClient();
     }
 
     calculateCategory(dataArray, categories) {
@@ -22,11 +22,11 @@ class WeatherPredictor {
                     (min === null || value >= min) &&
                     (max === null || value <= max)
                 ) {
-                    results[cat].push(value)
+                    results[cat].push(value);
                     break;
                 }
             }
-        })
+        });
 
         for (let cat in results) {
             results[cat] = (results[cat].length / total) * 100;
@@ -36,55 +36,60 @@ class WeatherPredictor {
     }
 
     processEvent(historicalData, key, categories, name) {
-        let data = Object.values(historicalData.data[key])
-        let result = this.calculateCategory(data, categories)
+        let data = Object.values(historicalData.data[key]);
+        let result = this.calculateCategory(data, categories);
         return { event: name, data: result };
     }
 
     processSunlight(historicalData) {
-        const sunData = Object.entries(historicalData.data["ALLSKY_SFC_SW_DWN"]) // [[dateString, value], ...]
+        const sunData = Object.entries(
+            historicalData.data["ALLSKY_SFC_SW_DWN"],
+        ); // [[dateString, value], ...]
 
-        const currentYear = new Date().getFullYear()
-        const lastThirtyYears = Array.from({ length: 30 }, (_, i) => currentYear - i)
+        const currentYear = new Date().getFullYear();
+        const lastThirtyYears = Array.from(
+            { length: 30 },
+            (_, i) => currentYear - i,
+        );
 
         // Inicializa objeto com anos e meses
-        const groupedByYear = initializeYearMonthStructure(lastThirtyYears)
+        const groupedByYear = initializeYearMonthStructure(lastThirtyYears);
 
         // Popula os dados agrupados por ano e mês
-        populateGroupedData(groupedByYear, sunData)
+        populateGroupedData(groupedByYear, sunData);
 
         // Calcula média mensal de cada ano
-        const monthlyAverages = calculateMonthlyAverages(groupedByYear)
+        const monthlyAverages = calculateMonthlyAverages(groupedByYear);
 
         // Calcula média anual a partir das médias mensais
-        const yearlyAverages = calculateYearlyAverages(monthlyAverages)
+        const yearlyAverages = calculateYearlyAverages(monthlyAverages);
 
         // Calcula média geral de todos os anos
-        const overallAverage = calculateOverallAverage(yearlyAverages)
+        const overallAverage = calculateOverallAverage(yearlyAverages);
 
-        return { event: 'Sunlight', data: overallAverage };
+        return { event: "Sunlight", data: overallAverage };
 
         // --- Funções auxiliares ---
 
         function initializeYearMonthStructure(years) {
             const structure = {};
-            years.forEach(year => {
+            years.forEach((year) => {
                 structure[year] = {};
                 for (let month = 1; month <= 12; month++) {
                     structure[year][month] = [];
                 }
-            })
+            });
             return structure;
         }
 
         function populateGroupedData(grouped, data) {
             data.forEach(([dateString, value]) => {
-                const year = parseInt(dateString.slice(0, 4))
-                const month = parseInt(dateString.slice(4, 6))
+                const year = parseInt(dateString.slice(0, 4));
+                const month = parseInt(dateString.slice(4, 6));
                 if (grouped[year] && grouped[year][month]) {
-                    grouped[year][month].push({ date: dateString, value })
+                    grouped[year][month].push({ date: dateString, value });
                 }
-            })
+            });
         }
 
         function calculateMonthlyAverages(grouped) {
@@ -92,8 +97,13 @@ class WeatherPredictor {
             for (let year in grouped) {
                 monthlyAvg[year] = {};
                 for (let month in grouped[year]) {
-                    const validValues = grouped[year][month].filter(item => item.value !== -999).map(item => item.value)
-                    const avg = validValues.length ? validValues.reduce((sum, v) => sum + v, 0) / validValues.length : 0;
+                    const validValues = grouped[year][month]
+                        .filter((item) => item.value !== -999)
+                        .map((item) => item.value);
+                    const avg = validValues.length
+                        ? validValues.reduce((sum, v) => sum + v, 0) /
+                          validValues.length
+                        : 0;
                     monthlyAvg[year][month] = avg;
                 }
             }
@@ -103,14 +113,15 @@ class WeatherPredictor {
         function calculateYearlyAverages(monthlyAvg) {
             const yearlyAvg = {};
             for (let year in monthlyAvg) {
-                const months = Object.values(monthlyAvg[year])
-                yearlyAvg[year] = months.reduce((sum, v) => sum + v, 0) / months.length;
+                const months = Object.values(monthlyAvg[year]);
+                yearlyAvg[year] =
+                    months.reduce((sum, v) => sum + v, 0) / months.length;
             }
             return yearlyAvg;
         }
 
         function calculateOverallAverage(yearlyAvg) {
-            const years = Object.values(yearlyAvg)
+            const years = Object.values(yearlyAvg);
             return years.reduce((sum, v) => sum + v, 0) / years.length;
         }
     }
@@ -119,7 +130,7 @@ class WeatherPredictor {
         const tempMap = historicalData.data?.T2M || {};
         const precipMap = historicalData.data?.PRECTOTCORR || {};
 
-        const dates = Object.keys(tempMap).filter((d) => d in precipMap)
+        const dates = Object.keys(tempMap).filter((d) => d in precipMap);
 
         const counts = { none: 0, weak: 0, moderate: 0, strong: 0 };
         let valid = 0;
@@ -161,139 +172,189 @@ class WeatherPredictor {
         return { event: "Snow", data: result };
     }
 
+    weightedPercentage(data, weights) {
+        let total = 0;
+        let weightedSum = 0;
+        for (let key in data) {
+            const value = data[key] || 0;
+            const weight = weights[key] || 0;
+            weightedSum += value * weight;
+            total += value;
+        }
+        return total ? weightedSum / total : 0;
+    }
+
     isSunny(categoryResults, sunlightResult) {
-        const cloud = categoryResults.find(l => l.event === 'Cloud')
+        const cloud = categoryResults.find((l) => l.event === "Cloud");
+        const precipitation = categoryResults.find(
+            (l) => l.event === "Preciptation",
+        );
+        const sunlight = sunlightResult?.data || 0;
 
-        if (!cloud || !cloud.data) {
-            console.warn("Dados de nuvem ausentes.")
-            return { classification: 'Desconhecido', sunlight, cloudiness: null }
+        if (!cloud || !precipitation)
+            return { howSunny: "Sem previsão de sol" };
+
+        const cloudWeights = {
+            weak: 10,
+            moderate: 20,
+            strong: 30,
+            intense: 40,
+        };
+        const rainWeights = { weak: 10, moderate: 20, strong: 30, intense: 40 };
+
+        const cloudiness = this.weightedPercentage(cloud.data, cloudWeights);
+        const raininess = this.weightedPercentage(
+            precipitation.data,
+            rainWeights,
+        );
+
+        let howSunny = "Sem previsão de sol";
+
+        // Se alta radiação solar e pouca chuva → ensolarado
+        if (sunlight > 200 && raininess < 20) {
+            if (cloudiness < 10) howSunny = "Sunny";
+            else if (cloudiness < 35) howSunny = "Sun with clouds";
+            else howSunny = "Parcialmente ensolarado";
+        } else if (cloudiness > 50) {
+            howSunny = "No sun";
         }
 
-        // Descobre o nível de nuvem predominante
-        const { key: maxKey, value: maxValue } = Object.entries(cloud.data).reduce(
-            (max, [key, value]) => (value > max.value ? { key, value } : max),
-            { key: null, value: -Infinity }
-        )
-
-        let howSunny = ''
-
-        if (maxValue < 10) {
-            howSunny = 'Sunny'
-        } else if (maxValue >= 10 && maxValue <= 30) {
-            howSunny = 'Sun with clouds'
-        } else {
-            howSunny = 'No sun'
-        }
-
-        // Retorna objeto estruturado
         return {
             howSunny,
-            cloudiness: {
-                level: maxKey,
-                percentage: maxValue
-            }
-        }
+            cloudiness: { percentage: cloudiness },
+        };
     }
 
     getMainWeatherCondition(predictions, dominanceThreshold = 10) {
-        const getEvent = (name) => predictions.find(p => p.event === name)
+        const getEvent = (name) => predictions.find((p) => p.event === name);
 
-        const precipitation = getEvent('Preciptation')
-        const cloud = getEvent('Cloud')
-        const snow = getEvent('Snow')
-        const sunlight = getEvent('Sunlight')
-        const sunnyCondition = predictions.find(p => p.howSunny)?.howSunny;
+        // Extrai eventos
+        const precipitation = getEvent("Preciptation");
+        const cloud = getEvent("Cloud");
+        const snow = getEvent("Snow");
+        const sunlight = getEvent("SunRadiation"); // opcional
+        const isSunnyObj = predictions.find((p) => p.howSunny);
 
-        // Pega o maior valor de cada evento 
-        const maxPrecip = precipitation ? Math.max(...Object.values(precipitation.data)) : 0;
-        const maxCloud = cloud ? Math.max(...Object.values(cloud.data)) : 0;
-        const maxSnow = snow ? Math.max(...Object.values(snow.data)) : 0;
-        const sunValue = sunlight ? sunlight.data : 0; 
+        // Pesos para categorias
+        const weights = { weak: 25, moderate: 50, strong: 75, intense: 100 };
 
-        // Monta lista de comparações gerais
+        // Função auxiliar: converte categorias em escala 0-100
+        const eventScore = (ev) => {
+            if (!ev || !ev.data) return 0;
+            // Ignora 'none'
+            const filtered = Object.fromEntries(
+                Object.entries(ev.data).filter(([k]) => k !== "none"),
+            );
+            return this.weightedPercentage(filtered, weights);
+        };
+
+        // Calcula score proporcional
+        const precipScore = eventScore(precipitation);
+        const cloudScore = eventScore(cloud);
+        const snowScore = eventScore(snow);
+
+        // Sol: se isSunny definido, transforma em 0-100
+        const sunnyScoreMap = {
+            Sunny: 100,
+            "Sun with clouds": 70,
+            "No sun": 0,
+            Sol: 100,
+            "Sol com poucas nuvens": 70,
+            "Sem previsão de sol": 0,
+        };
+        const sunScore = isSunnyObj
+            ? (sunnyScoreMap[isSunnyObj.howSunny] ?? 0)
+            : 0;
+
+        // Lista de eventos para comparar
         const eventStrengths = [
-            { name: 'Chuvoso', value: maxPrecip },
-            { name: 'Nublado', value: maxCloud },
-            { name: 'Nevando', value: maxSnow },
-            { name: 'Ensolarado', value: sunValue }
+            { name: "Chuvoso", value: precipScore },
+            { name: "Nublado", value: cloudScore },
+            { name: "Nevando", value: snowScore },
+            { name: "Ensolarado", value: sunScore },
         ];
 
-        // Ordena por força
-        const sorted = eventStrengths.sort((a, b) => b.value - a.value)
-        const top = sorted[0];
-        const second = sorted[1];
-        const diffPercent = ((top.value - second.value) / second.value) * 100;
+        // Ordena do maior para menor
+        const sorted = eventStrengths.slice().sort((a, b) => b.value - a.value);
+        const top = sorted[0] || { value: 0 };
+        const second = sorted[1] || { value: 0 };
 
-        // Verifica dominância entre eventos
-        if (diffPercent < dominanceThreshold) {
+        // Diferença de dominância percentual
+        const dominanceDiff =
+            second.value === 0
+                ? Infinity
+                : ((top.value - second.value) / second.value) * 100;
+
+        // Se diferença pequena, retorna sem condição dominante
+        if (
+            !(dominanceDiff === Infinity) &&
+            dominanceDiff < dominanceThreshold
+        ) {
             return {
-                main: 'Sem condição dominante',
+                main: "Sem condição dominante",
                 confidence: 0,
-                dominanceDiff: parseFloat(diffPercent.toFixed(2)),
-                eventStrengths
+                dominanceDiff: parseFloat(
+                    (isFinite(dominanceDiff) ? dominanceDiff : 0).toFixed(2),
+                ),
+                eventStrengths,
             };
         }
 
-        // Agora decide o tempo principal baseado no evento dominante
-        let main = 'Sem condição dominante';
-        let confidence = top.value;
-
+        // Define main baseado no top
+        let main = "Sem condição dominante";
         switch (top.name) {
-            case 'Nevando':
-                if (maxSnow > 10) main = 'Nevando';
+            case "Chuvoso":
+                main = top.value > 10 ? "Chuvoso" : main;
                 break;
-            case 'Chuvoso':
-                if (maxPrecip > 20) main = 'Chuvoso';
+            case "Nublado":
+                main = top.value > 10 ? "Nublado" : main;
                 break;
-            case 'Nublado':
-                if (maxCloud > 40 || sunnyCondition === 'No sun') main = 'Nublado';
+            case "Nevando":
+                main = top.value > 10 ? "Nevando" : main;
                 break;
-            case 'Ensolarado':
-                if (sunnyCondition === 'Sunny' && maxCloud < 15) main = 'Ensolarado';
-                else if (sunnyCondition === 'Sun with clouds') main = 'Parcialmente ensolarado';
+            case "Ensolarado":
+                if (sunScore >= 85) main = "Ensolarado";
+                else if (sunScore >= 50) main = "Parcialmente ensolarado";
+                else main = "Ensolarado";
                 break;
         }
 
         return {
             main,
-            confidence: parseFloat(confidence.toFixed(2)),
-            dominanceDiff: parseFloat(diffPercent.toFixed(2)),
+            confidence: parseFloat(top.value.toFixed(2)),
+            dominanceDiff:
+                dominanceDiff === Infinity
+                    ? 9999
+                    : parseFloat(dominanceDiff.toFixed(2)),
             eventStrengths,
-            details: {
-                sunnyCondition,
-                precipitation: precipitation?.data,
-                cloud: cloud?.data,
-                snow: snow?.data,
-                sunlight: sunlight?.data
-            }
         };
     }
 
     async predict(lat, lon, futureDate) {
         try {
-            const futureDateObj = new Date(futureDate)
+            const futureDateObj = new Date(futureDate);
             if (isNaN(futureDateObj.getTime())) {
-                throw new Error("Data inválida fornecida")
+                throw new Error("Data inválida fornecida");
             }
 
             // 1. Buscar dados históricos NASA POWER (fonte principal)
             const historicalData = await this.nasaClient.fetchHistoricalData(
                 lat,
                 lon,
-            )
+            );
 
             // 2. Buscar metadados Earthdata (validação secundária, não-crítico)
             const earthdataMetadata =
-                await this.earthdataClient.fetchDatasetMetadata(lat, lon)
+                await this.earthdataClient.fetchDatasetMetadata(lat, lon);
 
             // 3. Gerar link para visualização Giovanni
-            const currentYear = new Date().getFullYear()
+            const currentYear = new Date().getFullYear();
             const giovanniLink = this.earthdataClient.generateGiovanniLink(
                 lat,
                 lon,
                 `${currentYear - 5}-01-01`, // Últimos 5 anos
                 `${currentYear}-12-31`,
-            )
+            );
 
             const categories = {
                 Wind: {
@@ -356,21 +417,29 @@ class WeatherPredictor {
                         config.key,
                         config.ranges,
                         name,
-                    )
+                    );
                 },
-            )
+            );
 
-            const sunlightResult = this.processSunlight(historicalData)
-            const snowResult = this.processSnow(historicalData)
+            const sunlightResult = this.processSunlight(historicalData);
+            const snowResult = this.processSnow(historicalData);
 
-            const isSunny = this.isSunny(categoryResults, sunlightResult)
-            const mainWeather = this.getMainWeatherCondition(categoryResults)
+            const isSunny = this.isSunny(categoryResults, sunlightResult);
+            const mainWeather = this.getMainWeatherCondition([
+                ...categoryResults,
+                isSunny,
+            ]);
 
-            const results = [...categoryResults, sunlightResult, snowResult, isSunny]
+            const results = [
+                ...categoryResults,
+                sunlightResult,
+                snowResult,
+                isSunny,
+            ];
 
             // Retornar com metadados enriquecidos
             return {
-                mainWeather : mainWeather,
+                mainWeather: mainWeather,
                 predictions: results,
                 metadata: {
                     location: {
@@ -405,7 +474,7 @@ class WeatherPredictor {
                 },
             };
         } catch (error) {
-            console.error("WeatherPredictor error:", error)
+            console.error("WeatherPredictor error:", error);
             return {
                 error: `Erro na previsão: ${error.message}`,
                 code: 500,
