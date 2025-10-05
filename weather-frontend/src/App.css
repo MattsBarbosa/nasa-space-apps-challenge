@@ -1,7 +1,7 @@
 /* ===== IMPORTS E RESET ===== */
 @import "leaflet/dist/leaflet.css";
 @import url(https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap);
-
+@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap");
 * {
     margin: 0;
     padding: 0;
@@ -66,9 +66,11 @@ textarea {
 }
 
 .app__header span {
-    font-size: 12px;
+    font-size: 30px;
     gap: 4px;
     color: #212121;
+    font-family: "Pixelify Sans", sans-serif;
+    font-optical-sizing: auto;
 }
 
 .app__header .header__container {
@@ -207,7 +209,7 @@ textarea {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     margin-left: 0.25rem;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
 }
 
 .app__alert-view-button {
@@ -231,7 +233,11 @@ textarea {
 
 /* ===== LOADING STATE ===== */
 .app__loading-state {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(79, 70, 229, 0.8));
+    background: linear-gradient(
+        135deg,
+        rgba(59, 130, 246, 0.8),
+        rgba(79, 70, 229, 0.8)
+    );
     border-radius: 3rem;
     padding: 3rem 2rem;
     color: #151515;
@@ -600,7 +606,9 @@ textarea {
     width: 100%;
     height: 100dvh;
     position: relative;
-    transition: filter 0.5s ease, transform 0.3s ease;
+    transition:
+        filter 0.5s ease,
+        transform 0.3s ease;
 }
 
 .map-selector__map {
@@ -645,7 +653,7 @@ textarea {
 .map-selector__popup-coords {
     font-size: 12px;
     color: #6b7280;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
 }
 
 .map-selector__overlay {
@@ -682,7 +690,7 @@ textarea {
     display: flex;
     align-items: center;
     font-weight: 500;
-    color: #FFF;
+    color: #fff;
     font-size: 14px;
     margin-bottom: 8px;
     line-height: 1.2;
@@ -695,13 +703,13 @@ textarea {
 
 .map-selector__overlay-coords {
     font-size: 12px;
-    color: #FFF;
+    color: #fff;
     margin-bottom: 8px;
 }
 
 .map-selector__overlay-date {
     font-size: 12px;
-    color: #FFF;
+    color: #fff;
     margin-bottom: 8px;
 }
 
@@ -721,7 +729,7 @@ textarea {
 
 .map-selector__overlay-status span {
     font-size: 12px;
-    color: #FFF;
+    color: #fff;
 }
 
 /* ===== MAP SELECTOR STEPS ===== */
@@ -1238,7 +1246,9 @@ textarea {
     justify-content: center;
     cursor: pointer;
     color: #2a2a2a;
-    transition: background 0.2s, transform 0.2s;
+    transition:
+        background 0.2s,
+        transform 0.2s;
     z-index: 10;
 }
 
@@ -1326,7 +1336,7 @@ textarea {
 .weather-visualization__location-coords {
     font-size: 0.875rem;
     color: #666;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     margin: 0;
 }
 
@@ -1473,12 +1483,18 @@ textarea {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
     transform: translateX(-100%) skewX(-25deg);
     transition: transform 1s ease;
 }
 
-.weather-visualization__condition-card:hover .weather-visualization__condition-card-shine {
+.weather-visualization__condition-card:hover
+    .weather-visualization__condition-card-shine {
     transform: translateX(100%) skewX(-25deg);
 }
 
@@ -1734,27 +1750,47 @@ textarea {
 }
 
 .weather-badge-sunny {
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(255, 152, 0, 0.9));
+    background: linear-gradient(
+        135deg,
+        rgba(255, 193, 7, 0.9),
+        rgba(255, 152, 0, 0.9)
+    );
     color: #fff;
 }
 
 .weather-badge-rainy {
-    background: linear-gradient(135deg, rgba(33, 150, 243, 0.9), rgba(63, 81, 181, 0.9));
+    background: linear-gradient(
+        135deg,
+        rgba(33, 150, 243, 0.9),
+        rgba(63, 81, 181, 0.9)
+    );
     color: #fff;
 }
 
 .weather-badge-cloudy {
-    background: linear-gradient(135deg, rgba(96, 125, 139, 0.9), rgba(120, 144, 156, 0.9));
+    background: linear-gradient(
+        135deg,
+        rgba(96, 125, 139, 0.9),
+        rgba(120, 144, 156, 0.9)
+    );
     color: #fff;
 }
 
 .weather-badge-snowy {
-    background: linear-gradient(135deg, rgba(224, 247, 250, 0.9), rgba(178, 235, 242, 0.9));
+    background: linear-gradient(
+        135deg,
+        rgba(224, 247, 250, 0.9),
+        rgba(178, 235, 242, 0.9)
+    );
     color: #333;
 }
 
 .weather-badge-windy {
-    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(139, 195, 74, 0.9));
+    background: linear-gradient(
+        135deg,
+        rgba(76, 175, 80, 0.9),
+        rgba(139, 195, 74, 0.9)
+    );
     color: #fff;
 }
 
@@ -1850,7 +1886,8 @@ textarea {
     backdrop-filter: blur(10px);
 }
 
-.language-selector__dropdown:has([aria-expanded="true"]) .language-selector__menu {
+.language-selector__dropdown:has([aria-expanded="true"])
+    .language-selector__menu {
     opacity: 1;
     visibility: visible;
 }
@@ -2403,7 +2440,7 @@ textarea {
 .api-status__component-latency {
     font-size: 11px;
     color: #666;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
 }
 
 .api-status__no-components {
@@ -2490,7 +2527,7 @@ textarea {
 .api-status__error-message {
     font-size: 12px;
     color: #991b1b;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     word-break: break-word;
 }
 
@@ -2615,7 +2652,7 @@ textarea {
     display: none;
 }
 
-.map-selector__map-container .leaflet-control-container>div {
+.map-selector__map-container .leaflet-control-container > div {
     width: auto;
     height: auto;
     left: 14px;
@@ -2628,23 +2665,35 @@ textarea {
     margin: 0 !important;
 }
 
-.map-selector__map-container .leaflet-control-container .leaflet-control-zoom span {
+.map-selector__map-container
+    .leaflet-control-container
+    .leaflet-control-zoom
+    span {
     color: #151515;
 }
 
-.map-selector__map-container .leaflet-control-container .leaflet-control-zoom.leaflet-bar a {
+.map-selector__map-container
+    .leaflet-control-container
+    .leaflet-control-zoom.leaflet-bar
+    a {
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     background: rgba(255, 255, 255, 80%) !important;
     backdrop-filter: blur(10px) !important;
     transition: all 0.3s ease;
 }
 
-.map-selector__map-container .leaflet-control-container .leaflet-control-zoom.leaflet-bar a:hover {
+.map-selector__map-container
+    .leaflet-control-container
+    .leaflet-control-zoom.leaflet-bar
+    a:hover {
     background: rgba(255, 255, 255, 90%) !important;
     transform: unset !important;
 }
 
-.map-selector__map-container .leaflet-control-container .leaflet-control-zoom.leaflet-bar a.leaflet-control-zoom-in {
+.map-selector__map-container
+    .leaflet-control-container
+    .leaflet-control-zoom.leaflet-bar
+    a.leaflet-control-zoom-in {
     border-bottom-color: transparent !important;
 }
 
@@ -2656,7 +2705,6 @@ textarea {
 }
 
 @keyframes pulse {
-
     0%,
     100% {
         opacity: 1;
@@ -2668,7 +2716,6 @@ textarea {
 }
 
 @keyframes bounce {
-
     0%,
     20%,
     50%,
@@ -2687,7 +2734,6 @@ textarea {
 }
 
 @keyframes float {
-
     0%,
     100% {
         transform: translateY(0px);
@@ -2792,7 +2838,6 @@ textarea {
 }
 
 @keyframes weatherPulse {
-
     0%,
     100% {
         opacity: 0.8;
@@ -2804,7 +2849,6 @@ textarea {
 }
 
 @keyframes pulseWeather {
-
     0%,
     100% {
         transform: scale(1);
@@ -2993,7 +3037,9 @@ textarea {
         align-self: flex-end;
     }
 
-    .map-selector__map-container .leaflet-control-container .leaflet-control-zoom {
+    .map-selector__map-container
+        .leaflet-control-container
+        .leaflet-control-zoom {
         display: none;
     }
 
@@ -3026,7 +3072,6 @@ textarea {
         border-radius: 14px 14px 0 0 !important;
     }
 }
-
 
 /* ===== UTILITY CLASSES ===== */
 .sr-only {
@@ -3110,11 +3155,15 @@ textarea {
 }
 
 .shadow {
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.1),
+        0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .opacity-50 {
@@ -3126,7 +3175,9 @@ textarea {
 }
 
 .transition {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-property:
+        color, background-color, border-color, text-decoration-color, fill,
+        stroke, opacity, box-shadow, transform, filter, backdrop-filter;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
 }
@@ -3144,7 +3195,9 @@ textarea {
 }
 
 .transform {
-    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y))
+        rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y))
+        scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .hover\:scale-105:hover {
@@ -3178,7 +3231,9 @@ textarea {
 }
 
 .focus-visible\:ring-offset-2:focus-visible {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(59, 130, 246, 0.5);
+    box-shadow:
+        0 0 0 2px white,
+        0 0 0 4px rgba(59, 130, 246, 0.5);
 }
 
 /* ===== SCROLLBAR STYLES ===== */
@@ -3383,7 +3438,6 @@ textarea {
 }
 
 @keyframes pulse {
-
     0%,
     80%,
     100% {
@@ -3520,7 +3574,7 @@ textarea {
     display: none;
 }
 
-.weather-chat__message--assistant li+br {
+.weather-chat__message--assistant li + br {
     display: none;
 }
 
@@ -3593,7 +3647,6 @@ textarea {
 }
 
 @keyframes typingDot {
-
     0%,
     80%,
     100% {
@@ -3609,9 +3662,11 @@ textarea {
 
 .weather-chat__context {
     padding: 12px 16px;
-    background: linear-gradient(135deg,
-            rgba(116, 185, 255, 0.1) 0%,
-            rgba(9, 132, 227, 0.1) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(116, 185, 255, 0.1) 0%,
+        rgba(9, 132, 227, 0.1) 100%
+    );
     border-top: 1px solid #e9ecef;
     border-bottom: 1px solid #e9ecef;
 }
@@ -3751,7 +3806,6 @@ textarea {
 }
 
 @keyframes completedPulse {
-
     0%,
     100% {
         opacity: 1;
@@ -3791,7 +3845,7 @@ textarea {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: #FFF;
+    background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 0;
@@ -4048,7 +4102,9 @@ textarea {
 }
 
 @keyframes typing {
-    0%, 60%, 100% {
+    0%,
+    60%,
+    100% {
         transform: translateY(0);
     }
     30% {
@@ -4119,7 +4175,8 @@ textarea {
 }
 
 @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -4133,7 +4190,7 @@ textarea {
         max-height: 300px;
         width: 100%;
     }
-    
+
     .weather-chat__messages {
         max-height: 180px;
     }

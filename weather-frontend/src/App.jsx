@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import MapSelector from "./components/MapSelector.jsx";
-import WeatherChat from './components/WeatherChat.jsx';
+import WeatherChat from "./components/WeatherChat.jsx";
 import WeatherVisualization from "./components/WeatherVisualization.jsx";
 import LanguageSelector from "./components/LanguageSelector.jsx";
 import ReactMarkdown from "react-markdown";
 import ApiStatus from "./components/ApiStatus.jsx";
 import weatherApi from "./services/weatherApi";
-import { Cloud, Satellite, AlertTriangle, MapPin, Send, X, Eye } from "lucide-react";
+import {
+    Cloud,
+    Satellite,
+    AlertTriangle,
+    MapPin,
+    Send,
+    X,
+    Eye,
+} from "lucide-react";
 import { LanguageProvider, useTranslation } from "./i18n/useTranslation.jsx";
 
 const AppContent = () => {
@@ -19,11 +27,13 @@ const AppContent = () => {
     const [error, setError] = useState(null);
     const [chatError, setChatError] = useState(null);
     const [chatResponse, setChatResponse] = useState(null);
-    const [showWeatherVisualization, setShowWeatherVisualization] = useState(false);
-    const [dominantWeatherCondition, setDominantWeatherCondition] = useState(null);
+    const [showWeatherVisualization, setShowWeatherVisualization] =
+        useState(false);
+    const [dominantWeatherCondition, setDominantWeatherCondition] =
+        useState(null);
 
     const [sessionId] = useState(
-        () => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        () => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     );
 
     const mapSelectorRef = useRef(null);
@@ -31,7 +41,10 @@ const AppContent = () => {
     const [messages, setMessages] = useState([
         {
             role: "assistant",
-            content: t('chat.initialMessage', "Olá! 👋 Sou seu assistente meteorológico da NASA. Pergunte-me sobre as probabilidades climáticas para qualquer local e data futura, ou use o mapa acima para explorar previsões visuais."),
+            content: t(
+                "chat.initialMessage",
+                "Olá! 👋 Sou seu assistente meteorológico da NASA. Pergunte-me sobre as probabilidades climáticas para qualquer local e data futura, ou use o mapa acima para explorar previsões visuais.",
+            ),
         },
     ]);
 
@@ -48,52 +61,54 @@ const AppContent = () => {
         if (!data || !data.predictions) return null;
 
         const eventMapping = {
-            'Preciptation': 'rainy',
-            'Cloud': 'cloudy',
-            'Wind': 'windy',
-            'SunRadiation': 'sunny',
-            'Snow': 'snowy'
+            Preciptation: "rainy",
+            Cloud: "cloudy",
+            Wind: "windy",
+            SunRadiation: "sunny",
+            Snow: "snowy",
         };
 
         let maxProbability = 0;
-        let dominantCondition = 'sunny';
+        let dominantCondition = "sunny";
 
         const conditions = {
             sunny: 0,
             rainy: 0,
             cloudy: 0,
             snowy: 0,
-            windy: 0
+            windy: 0,
         };
 
-        data.predictions.forEach(prediction => {
+        data.predictions.forEach((prediction) => {
             const condition = eventMapping[prediction.event];
             let probability = 0;
 
             switch (prediction.event) {
-                case 'Preciptation':
+                case "Preciptation":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     conditions.rainy = Math.round(probability);
                     break;
-                case 'Cloud':
-                    probability = (prediction.data.moderate || 0) + (prediction.data.strong || 0);
+                case "Cloud":
+                    probability =
+                        (prediction.data.moderate || 0) +
+                        (prediction.data.strong || 0);
                     conditions.cloudy = Math.round(probability);
                     break;
-                case 'Wind':
+                case "Wind":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     conditions.windy = Math.round(probability);
                     break;
-                case 'SunRadiation':
+                case "SunRadiation":
                     probability = prediction.data.intense || 0;
                     conditions.sunny = Math.round(probability);
                     break;
-                case 'Snow':
+                case "Snow":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     conditions.snowy = Math.round(probability);
                     break;
@@ -106,15 +121,15 @@ const AppContent = () => {
         });
 
         if (conditions.snowy > 0) {
-            return 'snowy';
+            return "snowy";
         } else if (conditions.rainy > 60) {
-            return 'rainy';
+            return "rainy";
         } else if (conditions.cloudy > 80) {
-            return 'cloudy';
+            return "cloudy";
         } else if (conditions.windy > 90) {
-            return 'windy';
+            return "windy";
         } else if (conditions.sunny > 90) {
-            return 'sunny';
+            return "sunny";
         }
 
         return dominantCondition;
@@ -128,7 +143,10 @@ const AppContent = () => {
             setShowWeatherVisualization(true);
 
             setTimeout(() => {
-                if (mapSelectorRef.current && mapSelectorRef.current.resetFormOnly) {
+                if (
+                    mapSelectorRef.current &&
+                    mapSelectorRef.current.resetFormOnly
+                ) {
                     mapSelectorRef.current.resetFormOnly();
                 }
                 setLoading(false);
@@ -143,45 +161,47 @@ const AppContent = () => {
     }, [weatherData]);
 
     const getDominantCondition = (data) => {
-        if (!data || !data.predictions) return t('conditions.na');
+        if (!data || !data.predictions) return t("conditions.na");
 
         const eventMapping = {
-            'Wind': t('conditions.windy'),
-            'Preciptation': t('conditions.rainy'),
-            'Cloud': t('conditions.cloudy'),
-            'SunRadiation': t('conditions.sunny'),
-            'Snow': t('conditions.snowy')
+            Wind: t("conditions.windy"),
+            Preciptation: t("conditions.rainy"),
+            Cloud: t("conditions.cloudy"),
+            SunRadiation: t("conditions.sunny"),
+            Snow: t("conditions.snowy"),
         };
 
         let maxProbability = 0;
-        let dominantCondition = t('conditions.na');
+        let dominantCondition = t("conditions.na");
 
-        data.predictions.forEach(prediction => {
+        data.predictions.forEach((prediction) => {
             const conditionName = eventMapping[prediction.event];
             if (!conditionName) return;
 
             let probability = 0;
 
             switch (prediction.event) {
-                case 'Preciptation':
+                case "Preciptation":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     break;
-                case 'Cloud':
-                    probability = (prediction.data.moderate || 0) + (prediction.data.strong || 0);
+                case "Cloud":
+                    probability =
+                        (prediction.data.moderate || 0) +
+                        (prediction.data.strong || 0);
                     break;
-                case 'Wind':
+                case "Wind":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     break;
-                case 'SunRadiation':
+                case "SunRadiation":
                     probability = prediction.data.intense || 0;
                     break;
-                case 'Snow':
+                case "Snow":
                     probability = Object.entries(prediction.data)
-                        .filter(([key]) => key !== 'none')
+                        .filter(([key]) => key !== "none")
                         .reduce((sum, [, value]) => sum + value, 0);
                     break;
             }
@@ -223,25 +243,25 @@ const AppContent = () => {
                 latitude: chatWeatherData.coordinates.lat,
                 longitude: chatWeatherData.coordinates.lon,
                 date: chatWeatherData.date,
-                location_name: chatWeatherData.location
+                location_name: chatWeatherData.location,
             },
             analysis: {
                 temperature: {
                     value: chatWeatherData.temperature,
                     unit: "°C",
-                    confidence: "high"
+                    confidence: "high",
                 },
                 probabilities: {
                     sunny: chatWeatherData.probabilities.sun || 0,
                     cloudy: chatWeatherData.probabilities.clouds || 0,
-                    rainy: chatWeatherData.probabilities.rain || 0
-                }
+                    rainy: chatWeatherData.probabilities.rain || 0,
+                },
             },
             metadata: {
                 data_source: "NASA Historical Analysis via Chat",
                 processing_time: "AI Generated",
-                confidence_level: "Based on historical patterns"
-            }
+                confidence_level: "Based on historical patterns",
+            },
         };
 
         setWeatherData(convertedData);
@@ -260,7 +280,8 @@ const AppContent = () => {
         setChatError(null);
 
         try {
-            const API_URL = "https://nasa-weather-predictor.webdevinkel.workers.dev";
+            const API_URL =
+                "https://nasa-weather-predictor.webdevinkel.workers.dev";
 
             const response = await fetch(`${API_URL}/chat`, {
                 method: "POST",
@@ -272,21 +293,23 @@ const AppContent = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response
-                    .json()
-                    .catch(() => ({ message: `Erro na API: ${response.statusText}` }));
+                const errorData = await response.json().catch(() => ({
+                    message: `Erro na API: ${response.statusText}`,
+                }));
                 throw new Error(errorData.message);
             }
 
             const data = await response.json();
 
-            const assistantMessage = { role: "assistant", content: data.response };
+            const assistantMessage = {
+                role: "assistant",
+                content: data.response,
+            };
             setMessages((prevMessages) => [...prevMessages, assistantMessage]);
 
             if (data.weatherData) {
                 setWeatherData(data.weatherData);
             }
-
         } catch (err) {
             setChatError(err.message);
             const errorMessage = {
@@ -342,8 +365,8 @@ const AppContent = () => {
             {/* Header */}
             <header className="app__header">
                 <div className="header__container">
-                    <img src="../src/assets/logo-nasa.png" alt="logo skydata" />
-                    <span className="title_name">SkyData</span>
+                    {/* <img src="../src/assets/logo-nasa.png" alt="logo skydata" />*/}
+                    <span className="title_name">SKY DATA</span>
                 </div>
             </header>
 
@@ -368,18 +391,22 @@ const AppContent = () => {
                                 <AlertTriangle className="app__alert-icon" />
                                 <div className="app__alert-text">
                                     <h3 className="app__alert-title">
-                                        <span>{t('alerts.error.title')}</span>
+                                        <span>{t("alerts.error.title")}</span>
                                         <div className="app__alert-indicator"></div>
                                     </h3>
-                                    <p className="app__alert-description">{error}</p>
+                                    <p className="app__alert-description">
+                                        {error}
+                                    </p>
                                     <div className="app__alert-solution">
                                         <p className="app__alert-solution-text">
-                                            {t('alerts.error.solution')}
+                                            {t("alerts.error.solution")}
                                             <code className="app__alert-code">
                                                 http://localhost:8787
                                             </code>
                                             <br />
-                                            <small>{t('alerts.error.or')}</small>
+                                            <small>
+                                                {t("alerts.error.or")}
+                                            </small>
                                         </p>
                                     </div>
                                 </div>
@@ -394,20 +421,22 @@ const AppContent = () => {
                                 <Cloud className="app__alert-icon" />
                                 <div className="app__alert-text">
                                     <h3 className="app__alert-title">
-                                        <span>{t('alerts.success.title')}</span>
+                                        <span>{t("alerts.success.title")}</span>
                                     </h3>
                                     <p className="app__alert-description">
-                                        {t('alerts.success.description')} {weatherData.metadata?.location ?
-                                            `${weatherData.metadata.location.latitude.toFixed(4)}°, ${weatherData.metadata.location.longitude.toFixed(4)}°` :
-                                            'a localização selecionada'
-                                        }
+                                        {t("alerts.success.description")}{" "}
+                                        {weatherData.metadata?.location
+                                            ? `${weatherData.metadata.location.latitude.toFixed(4)}°, ${weatherData.metadata.location.longitude.toFixed(4)}°`
+                                            : "a localização selecionada"}
                                     </p>
                                     <button
                                         className="app__alert-view-button"
-                                        onClick={() => setShowWeatherVisualization(true)}
+                                        onClick={() =>
+                                            setShowWeatherVisualization(true)
+                                        }
                                     >
                                         <Eye size={16} />
-                                        {t('alerts.success.viewButton')}
+                                        {t("alerts.success.viewButton")}
                                     </button>
                                 </div>
                             </div>
@@ -421,17 +450,21 @@ const AppContent = () => {
                                 <AlertTriangle className="app__alert-icon" />
                                 <div className="app__alert-text">
                                     <h3 className="app__alert-title">
-                                        <span>{t('alerts.warning.title')}</span>
+                                        <span>{t("alerts.warning.title")}</span>
                                         <div className="app__alert-indicator"></div>
                                     </h3>
                                     <p className="app__alert-description">
-                                        {t('alerts.warning.description')}
+                                        {t("alerts.warning.description")}
                                     </p>
                                     <div className="app__alert-solution">
                                         <p className="app__alert-solution-text">
-                                            {t('alerts.warning.notice')}
+                                            {t("alerts.warning.notice")}
                                             <br />
-                                            <small>{t('alerts.warning.checkConnection')}</small>
+                                            <small>
+                                                {t(
+                                                    "alerts.warning.checkConnection",
+                                                )}
+                                            </small>
                                         </p>
                                     </div>
                                 </div>
@@ -449,11 +482,11 @@ const AppContent = () => {
                                 </div>
 
                                 <h3 className="app__loading-title">
-                                    {t('loading.title')}
+                                    {t("loading.title")}
                                 </h3>
 
                                 <p className="app__loading-description">
-                                    {t('loading.description')}
+                                    {t("loading.description")}
                                 </p>
 
                                 <div className="app__loading-dots">
@@ -472,8 +505,7 @@ const AppContent = () => {
 
             {/* Footer */}
             <footer className="app__footer">
-                <div className="app__container">
-                </div>
+                <div className="app__container"></div>
             </footer>
         </div>
     );
