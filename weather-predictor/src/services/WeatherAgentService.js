@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import WeatherPredictor from '../services/WeatherPredictor.js';
+import sessionManager from '../managers/SessionManager.js';
 
 class WeatherAgentService {
     constructor(env) {
@@ -13,26 +14,41 @@ class WeatherAgentService {
         this.systemInstruction = `Você é um meteorologista especializado em análise de dados climáticos históricos da NASA.
 
             ## Sua Função
-            Analisar a mensagem do usuário e fornecer probabilidades climáticas para eventos futuros com base em dados históricos.
+            Analisar mensagens do usuário em uma conversa contínua para coletar informações sobre local e data, e fornecer probabilidades climáticas baseadas em dados históricos.
 
-            ## Como Responder
-            1. Se a mensagem contiver local e data clara: use as ferramentas para buscar os dados e responda com as probabilidades
-            2. Se faltar informação (local ou data): faça UMA pergunta clara e objetiva para obter o que falta
-            3. Após obter todas as informações e gerar a resposta com probabilidades, ENCERRE a conversa
+            ## Fluxo da Conversa
+            1. **Análise da mensagem atual**: Examine o que o usuário disse agora
+            2. **Verificar contexto**: Use informações já coletadas em mensagens anteriores
+            3. **Identificar o que falta**:
+               - Local específico (cidade, país)
+               - Data completa (dia, mês, ano)
+            4. **Estratégia de resposta**:
+               - Se AMBOS local e data estão completos: use as ferramentas e forneça a previsão final
+               - Se falta APENAS um item: faça UMA pergunta específica para obter o que falta
+               - Se faltam AMBOS: priorize obter o local primeiro
+               - Se a informação está parcial (ex: "dezembro" sem ano/dia): peça especificação
+
+            ## Contexto da Sessão
+            Você tem acesso ao histórico da conversa. Use-o para:
+            - Não repetir perguntas já respondidas
+            - Combinar informações de mensagens diferentes
+            - Manter continuidade na conversa
 
             ## Formato da Resposta Final
-            Apresente as probabilidades de forma clara e estruturada:
+            Quando tiver TODOS os dados necessários:
             - Use emojis para facilitar visualização
-            - Mostre percentuais
+            - Mostre percentuais de probabilidade
             - Inclua temperatura esperada
             - Seja direto e objetivo
-            - Sempre formate em markdown
+            - Formate em markdown
+            - Esta será a ÚLTIMA mensagem da conversa
 
             ## Importante
-            - Trabalhe com probabilidades baseadas em dados históricos
-            - Sua precisão é maior para eventos 6+ meses no futuro
-            - Nunca garanta condições específicas
-            - Após dar a resposta completa, não prolongue a conversa
+            - Seja natural e conversacional
+            - Uma pergunta por vez para não confundir o usuário
+            - Confirme dados ambíguos (ex: "Londres, Reino Unido?")
+            - Trabalhe com probabilidades, nunca certezas
+            - Após dar a resposta final com probabilidades, a conversa será automaticamente encerrada
             `;
 
         this.tools = [
@@ -111,20 +127,25 @@ class WeatherAgentService {
         return { result };
     }
 
-    async chat(userMessage) {
+    async chat(userMessage, sessionId = null) {
         const toolFunctions = {
             get_latitude_and_longitude: this.getLatitudeAndLongitude.bind(this),
             get_date: this.getDate.bind(this),
             predict: this.predict.bind(this),
         };
 
-        let contents = [
-            {
-                role: "user",
-                parts: [{ text: userMessage }],
-            },
-        ];
+        // Gerenciar sessão
+        if (!sessionId) {
+            sessionId = sessionManager.createSession();
+        }
 
+        // Adicionar mensagem do usuário à sessão
+        sessionManager.addMessage(sessionId, 'user', userMessage);
+
+        // Construir histórico da conversa
+        const conversationHistory = sessionManager.buildConversationHistory(sessionId);
+
+        let contents = [...conversationHistory];
         let iterations = 0;
         const maxIterations = 10;
 
@@ -147,6 +168,21 @@ class WeatherAgentService {
                     const { name, args } = functionCall;
                     const toolResponse = await toolFunctions[name](args);
 
+                    // Atualizar contexto da sessão baseado nas chamadas de função
+                    if (name === 'get_latitude_and_longitude' && toolResponse.lat && toolResponse.lng) {
+                        sessionManager.updateContext(sessionId, {
+                            location: args.location,
+                            latitude: toolResponse.lat,
+                            longitude: toolResponse.lng
+                        });
+                    }
+
+                    if (name === 'get_date' && toolResponse.date) {
+                        sessionManager.updateContext(sessionId, {
+                            date: toolResponse.date
+                        });
+                    }
+
                     contents.push({
                         role: "model",
                         parts: [{ functionCall }],
@@ -161,6 +197,11 @@ class WeatherAgentService {
                             },
                         }],
                     });
+
+                    // Se foi uma previsão bem-sucedida, marcar sessão como completa
+                    if (name === 'predict' && toolResponse.result && !toolResponse.result.error) {
+                        // A sessão será marcada como completa após a resposta final
+                    }
                 }
             } else {
                 const parts = result.candidates?.[0]?.content?.parts || [];
@@ -169,11 +210,51 @@ class WeatherAgentService {
                     .map(part => part.text)
                     .join('\n');
 
-                return response;
+                // Adicionar resposta do assistente à sessão
+                sessionManager.addMessage(sessionId, 'assistant', response);
+
+                // Verificar se é uma resposta final (contém probabilidades/previsão)
+                const isFinalResponse = this.isFinalResponse(response);
+
+                return {
+                    response,
+                    sessionId,
+                    isComplete: isFinalResponse,
+                    context: sessionManager.getSession(sessionId)?.context || {}
+                };
             }
         }
 
         throw new Error('Limite de iterações atingido');
+    }
+
+    /**
+     * Verifica se a resposta é final (contém previsão completa)
+     */
+    isFinalResponse(response) {
+        const finalIndicators = [
+            'probabilidade',
+            'temperatura',
+            '°C',
+            '%',
+            'baseado em dados históricos',
+            'previsão',
+            'condições climáticas'
+        ];
+
+        const lowerResponse = response.toLowerCase();
+        const hasMultipleIndicators = finalIndicators.filter(indicator =>
+            lowerResponse.includes(indicator)
+        ).length >= 3;
+
+        // Também verifica se não é uma pergunta
+        const isNotQuestion = !response.trim().endsWith('?') &&
+                             !lowerResponse.includes('qual') &&
+                             !lowerResponse.includes('quando') &&
+                             !lowerResponse.includes('onde') &&
+                             !lowerResponse.includes('poderia');
+
+        return hasMultipleIndicators && isNotQuestion;
     }
 }
 

@@ -1,5 +1,6 @@
 import WeatherPredictor from "../services/WeatherPredictor.js";
 import WeatherAgentService from "../services/WeatherAgentService.js";
+import sessionManager from "../managers/SessionManager.js";
 import { validateCoordinates, validateDate } from "../utils/validators.js";
 import { homepageHTML } from "../templates/homepage.js";
 
@@ -10,6 +11,8 @@ class WeatherController {
         this.home = this.home.bind(this);
         this.debug = this.debug.bind(this);
         this.chat = this.chat.bind(this);
+        this.getSessionStats = this.getSessionStats.bind(this);
+        this.endSession = this.endSession.bind(this);
     }
 
     async predict(c) {
@@ -156,15 +159,15 @@ class WeatherController {
                         message:
                             "O corpo da requisição deve ser um JSON válido",
                         example: {
-                            message:
-                                "Vou para Londres em 6 de fevereiro de 2027",
+                            message: "Vou para Londres em 6 de fevereiro de 2027",
+                            sessionId: "opcional - será criado automaticamente se não fornecido"
                         },
                     },
                     400,
                 );
             }
 
-            const { message } = body;
+            const { message, sessionId } = body;
 
             if (
                 !message ||
@@ -175,8 +178,22 @@ class WeatherController {
                     {
                         error: "Mensagem é obrigatória",
                         example: {
-                            message:
-                                "Vou para Londres em 6 de fevereiro de 2027",
+                            message: "Vou para Londres em 6 de fevereiro de 2027",
+                            sessionId: "opcional"
+                        },
+                    },
+                    400,
+                );
+            }
+
+            // Validar sessionId se fornecido
+            if (sessionId && typeof sessionId !== "string") {
+                return c.json(
+                    {
+                        error: "sessionId deve ser uma string",
+                        example: {
+                            message: "Vou para Londres em 6 de fevereiro de 2027",
+                            sessionId: "session_1234567890_abc123def"
                         },
                     },
                     400,
@@ -184,17 +201,97 @@ class WeatherController {
             }
 
             const agentService = new WeatherAgentService(c.env);
-            const response = await agentService.chat(message.trim());
+            const result = await agentService.chat(message.trim(), sessionId);
 
+            // Se a conversa foi completada, encerrar a sessão
+            if (result.isComplete) {
+                sessionManager.completeSession(result.sessionId);
+                
+                return c.json(
+                    {
+                        response: result.response,
+                        sessionId: result.sessionId,
+                        status: "completed",
+                        message: "Conversa finalizada. Todos os dados foram coletados e a previsão foi fornecida.",
+                        timestamp: new Date().toISOString(),
+                    },
+                    200,
+                );
+            }
+
+            // Conversa ainda em andamento
             return c.json(
                 {
-                    response,
+                    response: result.response,
+                    sessionId: result.sessionId,
+                    status: "active",
+                    context: result.context,
                     timestamp: new Date().toISOString(),
                 },
                 200,
             );
         } catch (error) {
             console.error("Erro no chat:", error);
+            return c.json(
+                {
+                    error: "Erro interno do servidor",
+                    message: error.message,
+                },
+                500,
+            );
+        }
+    }
+
+    async getSessionStats(c) {
+        try {
+            const stats = sessionManager.getStats();
+            return c.json({
+                ...stats,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error("Erro ao obter estatísticas:", error);
+            return c.json(
+                {
+                    error: "Erro interno do servidor",
+                    message: error.message,
+                },
+                500,
+            );
+        }
+    }
+
+    async endSession(c) {
+        try {
+            const sessionId = c.req.param('sessionId');
+            
+            if (!sessionId) {
+                return c.json(
+                    {
+                        error: "sessionId é obrigatório",
+                        example: "/chat/sessions/session_1234567890_abc123def/end"
+                    },
+                    400,
+                );
+            }
+
+            const success = sessionManager.endSession(sessionId);
+            
+            if (success) {
+                return c.json({
+                    message: "Sessão encerrada com sucesso",
+                    sessionId,
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                return c.json({
+                    error: "Sessão não encontrada",
+                    sessionId,
+                    timestamp: new Date().toISOString()
+                }, 404);
+            }
+        } catch (error) {
+            console.error("Erro ao encerrar sessão:", error);
             return c.json(
                 {
                     error: "Erro interno do servidor",

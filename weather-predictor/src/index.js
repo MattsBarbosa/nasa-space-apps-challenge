@@ -6,7 +6,7 @@ const app = new Hono()
 
 app.use('*', cors({
     origin: '*',
-    allowMethods: ['GET', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type']
 }))
 
@@ -16,6 +16,8 @@ app.get('/', weatherController.home)
 app.get('/predict', weatherController.predict)
 app.get('/health', weatherController.health)
 app.post('/chat', weatherController.chat)
+app.get('/chat/sessions/stats', weatherController.getSessionStats)
+app.delete('/chat/sessions/:sessionId/end', weatherController.endSession)
 app.get('/debug', weatherController.debug)
 
 app.options('*', (c) => c.text('', 204))
